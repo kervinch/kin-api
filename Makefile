@@ -86,12 +86,12 @@ build/api:
 # QUALITY CONTROL
 # ==================================================================================== #
 
-production_host_ip = '54.151.175.100'
+production_host_ip = 'ec2-54-151-175-100.ap-southeast-1.compute.amazonaws.com'
 
 ## production/configure/api.service: configure the production systemd api.service file
-.PHONY: production/configure/api.service 
-production/configure/api.service:
-	rsync -P ./remote/production/api.service greenlight@${production_host_ip}:~ 
-	ssh -t greenlight@${production_host_ip} '\
-	sudo mv ~/api.service /etc/systemd/system/ \ && sudo systemctl enable api \
-	&& sudo systemctl restart api \
+.PHONY: production/configure/kin.service 
+production/configure/kin.service:
+	rsync -P ./remote/production/api.service ubuntu@${production_host_ip}:~ 
+	ssh -t ubuntu@${production_host_ip} '\
+	sudo mv ~/kin.service /etc/systemd/system/ \ && sudo systemctl enable kin \
+	&& sudo systemctl restart kin \
