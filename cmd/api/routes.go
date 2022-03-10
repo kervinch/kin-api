@@ -15,27 +15,38 @@ func (app *application) routes() http.Handler {
 
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
-	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
+	// ====================================================================================
+	// API - Business Routes
+	// ====================================================================================
 
-	// movies
-	router.HandlerFunc(http.MethodGet, "/v1/movies", app.requireActivatedUser(app.listMoviesHandler))
-	// router.HandlerFunc(http.MethodGet, "/v1/movies", app.listMoviesHandler)
-	router.HandlerFunc(http.MethodPost, "/v1/movies", app.requirePermission("movies:write", app.createMovieHandler))
-	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.requireActivatedUser(app.showMovieHandler))
-	router.HandlerFunc(http.MethodPut, "/v1/movies/:id", app.requireActivatedUser(app.fullUpdateMovieHandler))
-	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.requirePermission("movies:write", app.updateMovieHandler))
-	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.requirePermission("movies:write", app.deleteMovieHandler))
+	// Users
+	router.HandlerFunc(http.MethodPost, "/api/users", app.registerUserHandler)
+	router.HandlerFunc(http.MethodGet, "/api/users/activated", app.activateUserHandler)
+	router.HandlerFunc(http.MethodPut, "/api/users/password", app.updateUserPasswordHandler)
 
-	// users
-	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
-	router.HandlerFunc(http.MethodGet, "/v1/users/activated", app.activateUserHandler)
-	router.HandlerFunc(http.MethodPut, "/v1/users/password", app.updateUserPasswordHandler)
+	// Tokens
+	router.HandlerFunc(http.MethodPost, "/api/tokens/authentication", app.createAuthenticationTokenHandler)
+	router.HandlerFunc(http.MethodPost, "/api/tokens/activation", app.createActivationTokenHandler)
+	router.HandlerFunc(http.MethodPost, "/api/tokens/password-reset", app.createPasswordResetTokenHandler)
 
-	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationTokenHandler)
-	router.HandlerFunc(http.MethodPost, "/v1/tokens/activation", app.createActivationTokenHandler)
-	router.HandlerFunc(http.MethodPost, "/v1/tokens/password-reset", app.createPasswordResetTokenHandler)
+	// ====================================================================================
+	// CMS - Backoffice Routes
+	// ====================================================================================
 
-	// metrics
+	// Movies
+	router.HandlerFunc(http.MethodGet, "/cms/movies", app.requireActivatedUser(app.listMoviesHandler))
+	// router.HandlerFunc(http.MethodGet, "/movies", app.listMoviesHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/movies", app.requirePermission("movies:write", app.createMovieHandler))
+	router.HandlerFunc(http.MethodGet, "/cms/movies/:id", app.requireActivatedUser(app.showMovieHandler))
+	router.HandlerFunc(http.MethodPut, "/cms/movies/:id", app.requireActivatedUser(app.fullUpdateMovieHandler))
+	router.HandlerFunc(http.MethodPatch, "/cms/movies/:id", app.requirePermission("movies:write", app.updateMovieHandler))
+	router.HandlerFunc(http.MethodDelete, "/cms/movies/:id", app.requirePermission("movies:write", app.deleteMovieHandler))
+
+	// ====================================================================================
+	// Miscellaneous Routes
+	// ====================================================================================
+
+	router.HandlerFunc(http.MethodGet, "/healthcheck", app.healthcheckHandler)
 	router.Handler(http.MethodGet, "/debug/vars", expvar.Handler())
 
 	// Return the httprouter instance.
