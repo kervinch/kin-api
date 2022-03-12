@@ -35,6 +35,7 @@ func (app *application) routes() http.Handler {
 
 	// Movies
 	router.HandlerFunc(http.MethodGet, "/cms/movies", app.requireActivatedUser(app.listMoviesHandler))
+	router.HandlerFunc(http.MethodGet, "/cms/free/movies", app.listMoviesHandler)
 	// router.HandlerFunc(http.MethodGet, "/movies", app.listMoviesHandler)
 	router.HandlerFunc(http.MethodPost, "/cms/movies", app.requirePermission("movies:write", app.createMovieHandler))
 	router.HandlerFunc(http.MethodGet, "/cms/movies/:id", app.requireActivatedUser(app.showMovieHandler))
