@@ -46,6 +46,7 @@ func (app *application) routes() http.Handler {
 	// Miscellaneous Routes
 	// ====================================================================================
 
+	router.HandlerFunc(http.MethodGet, "/", app.healthcheckHandler)
 	router.HandlerFunc(http.MethodGet, "/healthcheck", app.healthcheckHandler)
 	router.Handler(http.MethodGet, "/debug/vars", expvar.Handler())
 
