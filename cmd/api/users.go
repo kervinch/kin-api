@@ -67,14 +67,15 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	app.background(func() {
-		// data := map[string]interface{}{
-		// 	"activationToken": token.Plaintext,
-		// 	"userID":          user.ID,
-		// }
+		data := map[string]interface{}{
+			"activationToken": token.Plaintext,
+			"userID":          user.ID,
+		}
 
 		app.logger.PrintInfo(token.Plaintext, nil)
-		app.SendEmail(user.Email)
-		// err = app.mailer.Send(user.Email, "user_welcome.tmpl", data)
+		app.logger.PrintInfo(user.Email, nil)
+		// app.SendEmail(user.Email, "user_welcome.tmpl", data)
+		err = app.mailer.Send(user.Email, "Welcome to Kin!", "user_welcome.tmpl", data)
 		// if err != nil {
 		// 	app.logger.PrintError(err, nil)
 		// }

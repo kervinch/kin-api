@@ -116,7 +116,7 @@ func (app *application) createPasswordResetTokenHandler(w http.ResponseWriter, r
 		// Since email addresses MAY be case sensitive, we are sending this
 		// email using the address stored in our database for the user --- not to the
 		// input.Email address provided by the client in this request.
-		err = app.mailer.Send(user.Email, "token_password_reset.tmpl", data)
+		err = app.mailer.Send(user.Email, "Reset your Kin password", "token_password_reset.tmpl", data)
 		if err != nil {
 			app.logger.PrintError(err, nil)
 		}
@@ -177,7 +177,7 @@ func (app *application) createActivationTokenHandler(w http.ResponseWriter, r *h
 			"activationToken": token.Plaintext,
 		}
 
-		err = app.mailer.Send(user.Email, "token_activation.tmpl", data)
+		err = app.mailer.Send(user.Email, "Activate your Kin account!", "token_activation.tmpl", data)
 		if err != nil {
 			app.logger.PrintError(err, nil)
 		}

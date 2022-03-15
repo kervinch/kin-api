@@ -1,10 +1,10 @@
-{{define "subject"}}Welcome to Greenlight!{{end}}
+{{define "subject"}}Welcome to Kin!{{end}}
 {{define "plainBody"}} 
 Hi,
 
-To activate your Greenlight account please click the following link:
+To activate your Kin account please click the following link:
 
-http://localhost:4000/users/activate?token={{.activationToken}}
+<a href="https://api.kinofficial.co/͟api/u͟s͟e͟r͟s͟/͟a͟c͟t͟i͟v͟a͟t͟e͟d?͟t͟o͟k͟e͟n͟=͟{{.activationToken}}">http://localhost:4000/͟u͟s͟e͟r͟s͟/͟a͟c͟t͟i͟v͟a͟t͟e͟?͟t͟o͟k͟e͟n͟=͟{{.activationToken}}</a>
 
 Please note that this is a one-time use token and it will expire in 3 days.
 
@@ -22,14 +22,14 @@ The Greenlight Team
 </head>
 <body> 
     <p>Hi,</p>
-    <p>To activate your Greenlight account please click the following link:</p>
+    <p>To activate your Kin account please click the following link:</p>
 
-    <a href="http://localhost:4000/͟u͟s͟e͟r͟s͟/͟a͟c͟t͟i͟v͟a͟t͟e͟?͟t͟o͟k͟e͟n͟=͟{{.activationToken}}">http://localhost:4000/͟u͟s͟e͟r͟s͟/͟a͟c͟t͟i͟v͟a͟t͟e͟?͟t͟o͟k͟e͟n͟=͟{{.activationToken}}</a>
+    <a href="https://api.kinofficial.co/api/users/activated?token={{.activationToken}}">https://api.kinofficial.co/api/users/activated?token={{.activationToken}}</a>
 
     <p>Please note that this is a one-time use token and it will expire in 3 days.</p>
     
     <p>Thanks,</p>
-    <p>The Greenlight Team</p>
+    <p>The Kin Team</p>
 </body>
 </html> 
 {{end}}

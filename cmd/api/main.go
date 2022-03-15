@@ -79,8 +79,8 @@ func main() {
 
 	flag.StringVar(&cfg.smtp.host, "smtp-host", "email-smtp.ap-southeast-1.amazonaws.com", "SMTP host")
 	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
-	flag.StringVar(&cfg.smtp.username, "smtp-username", "kervinch@outlook.com", "SMTP username")
-	flag.StringVar(&cfg.smtp.password, "smtp-password", "$AMZN281296", "SMTP password")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "AKIAVQAV2PVA7M3YARNK", "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "BGsQAptuBZxIRhhzVD1VCu1NyNZAVtLIZBi7VfJ3hNbL", "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "no-reply from KIN <no-reply@kinofficial.co>", "SMTP sender")
 
 	flag.Func("cors-trusted-origins", "Trusted CORS origins (space seperated)", func(val string) error {
