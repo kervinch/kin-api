@@ -85,29 +85,29 @@ func (m Mailer) Send(recipient, emailSubject, templateFile string, data interfac
 	}
 
 	// Send email through Amazon's SES
-	SimpleEmailService(recipient, emailSubject, htmlBody, plainBody)
+	// SimpleEmailService(recipient, emailSubject, htmlBody, plainBody)
 
-	// Old SMTP method
-	// msg := mail.NewMessage()
-	// msg.SetHeader("To", recipient)
-	// msg.SetHeader("From", m.sender)
-	// msg.SetHeader("Subject", subject.String())
-	// msg.SetBody("text/plain", plainBody.String())
-	// msg.AddAlternative("text/html", htmlBody.String())
+	// Send email through SMTP method
+	msg := mail.NewMessage()
+	msg.SetHeader("To", recipient)
+	msg.SetHeader("From", m.sender)
+	msg.SetHeader("Subject", subject.String())
+	msg.SetBody("text/plain", plainBody.String())
+	msg.AddAlternative("text/html", htmlBody.String())
 
-	// err = m.dialer.DialAndSend(msg)
-	// if err != nil {
-	// 	return err
-	// }
+	err = m.dialer.DialAndSend(msg)
+	if err != nil {
+		return err
+	}
 
-	// for i := 1; i <= 3; i++ {
-	// 	err = m.dialer.DialAndSend(msg)
-	// 	if nil == err {
-	// 		return nil
-	// 	}
+	for i := 1; i <= 3; i++ {
+		err = m.dialer.DialAndSend(msg)
+		if nil == err {
+			return nil
+		}
 
-	// 	time.Sleep(500 * time.Millisecond)
-	// }
+		time.Sleep(500 * time.Millisecond)
+	}
 
 	return nil
 }

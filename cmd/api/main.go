@@ -77,10 +77,10 @@ func main() {
 	flag.IntVar(&cfg.limiter.burst, "limiter-burst", 4, "Rate limiter maximum burst")
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
 
-	flag.StringVar(&cfg.smtp.host, "smtp-host", "email-smtp.ap-southeast-1.amazonaws.com", "SMTP host")
-	flag.IntVar(&cfg.smtp.port, "smtp-port", 25, "SMTP port")
-	flag.StringVar(&cfg.smtp.username, "smtp-username", "AKIAVQAV2PVA7M3YARNK", "SMTP username")
-	flag.StringVar(&cfg.smtp.password, "smtp-password", "BGsQAptuBZxIRhhzVD1VCu1NyNZAVtLIZBi7VfJ3hNbL", "SMTP password")
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "in-v3.mailjet.com", "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 587, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "d08ac003c5185b1b8248036af6c3fa11", "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "b7ce91cf2bdeef0306ec108c5ef8b430", "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "no-reply from KIN <no-reply@kinofficial.co>", "SMTP sender")
 
 	flag.Func("cors-trusted-origins", "Trusted CORS origins (space seperated)", func(val string) error {
