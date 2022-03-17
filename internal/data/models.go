@@ -3,6 +3,8 @@ package data
 import (
 	"database/sql"
 	"errors"
+
+	"gorm.io/gorm"
 )
 
 var (
@@ -18,6 +20,10 @@ type Models struct {
 	Banners     BannerModel
 }
 
+type Gorm struct {
+	Banners GormBannerModel
+}
+
 func NewModels(db *sql.DB) Models {
 	return Models{
 		Movies:      MovieModel{DB: db},
@@ -25,6 +31,12 @@ func NewModels(db *sql.DB) Models {
 		Tokens:      TokenModel{DB: db},
 		Users:       UserModel{DB: db},
 		Banners:     BannerModel{DB: db},
+	}
+}
+
+func GormModels(db *gorm.DB) Gorm {
+	return Gorm{
+		Banners: GormBannerModel{DB: db},
 	}
 }
 

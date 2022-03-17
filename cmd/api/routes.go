@@ -43,6 +43,8 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPut, "/cms/banners/:id", app.fullUpdateBannerHandler)
 	router.HandlerFunc(http.MethodDelete, "/cms/banners/:id", app.deleteBannerHandler)
 
+	router.HandlerFunc(http.MethodGet, "/gorm/banners", app.gormListBannerHandler)
+
 	// Movies
 	router.HandlerFunc(http.MethodGet, "/cms/movies", app.requireActivatedUser(app.listMoviesHandler))
 	router.HandlerFunc(http.MethodGet, "/cms/free/movies", app.listMoviesHandler)

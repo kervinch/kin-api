@@ -12,6 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+
 	"github.com/kervinch/internal/data"
 	"github.com/kervinch/internal/jsonlog"
 	"github.com/kervinch/internal/mailer"
@@ -59,6 +62,7 @@ type application struct {
 	config config
 	logger *jsonlog.Logger
 	models data.Models
+	gorm   data.Gorm
 	mailer mailer.Mailer
 	wg     sync.WaitGroup
 }
@@ -102,7 +106,7 @@ func main() {
 	// logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 
-	db, err := openDB(cfg)
+	db, gorm, err := openDB(cfg)
 	if err != nil {
 		logger.PrintFatal(err, nil)
 	}
@@ -128,6 +132,7 @@ func main() {
 		config: cfg,
 		logger: logger,
 		models: data.NewModels(db),
+		gorm:   data.GormModels(gorm),
 		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 	}
 
@@ -137,11 +142,17 @@ func main() {
 	}
 }
 
-func openDB(cfg config) (*sql.DB, error) {
+func openDB(cfg config) (*sql.DB, *gorm.DB, error) {
 	db, err := sql.Open("postgres", cfg.db.dsn)
-	// db, err := sql.Open("postgres", "user=postgres password= dbname=greenlight sslmode=disable port=5433")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+
+	gorm, err := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
+	}), &gorm.Config{})
+	if err != nil {
+		return nil, nil, err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -149,8 +160,8 @@ func openDB(cfg config) (*sql.DB, error) {
 
 	err = db.PingContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return db, nil
+	return db, gorm, nil
 }

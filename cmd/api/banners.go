@@ -196,6 +196,19 @@ func (app *application) deleteBannerHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+func (app *application) gormListBannerHandler(w http.ResponseWriter, r *http.Request) {
+	banners, err := app.gorm.Banners.GetAll()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), banners, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
 // ====================================================================================
 // Business Handlers
 // ====================================================================================
