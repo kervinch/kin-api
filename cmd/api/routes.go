@@ -29,14 +29,23 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/api/tokens/activation", app.createActivationTokenHandler)
 	router.HandlerFunc(http.MethodPost, "/api/tokens/password-reset", app.createPasswordResetTokenHandler)
 
+	// Banners
+	router.HandlerFunc(http.MethodGet, "/api/banners", app.getBannersHandler)
+
 	// ====================================================================================
 	// CMS - Backoffice Routes
 	// ====================================================================================
 
+	// Banners
+	router.HandlerFunc(http.MethodGet, "/cms/banners", app.listBannersHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/banners/:id", app.showBannerHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/banners", app.createBannerHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/banners/:id", app.fullUpdateBannerHandler)
+	router.HandlerFunc(http.MethodDelete, "/cms/banners/:id", app.deleteBannerHandler)
+
 	// Movies
 	router.HandlerFunc(http.MethodGet, "/cms/movies", app.requireActivatedUser(app.listMoviesHandler))
 	router.HandlerFunc(http.MethodGet, "/cms/free/movies", app.listMoviesHandler)
-	// router.HandlerFunc(http.MethodGet, "/movies", app.listMoviesHandler)
 	router.HandlerFunc(http.MethodPost, "/cms/movies", app.requirePermission("movies:write", app.createMovieHandler))
 	router.HandlerFunc(http.MethodGet, "/cms/movies/:id", app.requireActivatedUser(app.showMovieHandler))
 	router.HandlerFunc(http.MethodPut, "/cms/movies/:id", app.requireActivatedUser(app.fullUpdateMovieHandler))
