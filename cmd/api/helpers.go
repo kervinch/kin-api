@@ -11,7 +11,9 @@ import (
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/kervinch/internal/data"
 	"github.com/kervinch/internal/validator"
+	"gorm.io/gorm"
 )
 
 type envelope map[string]interface{}
@@ -158,4 +160,40 @@ func (app *application) background(fn func()) {
 
 		fn()
 	}()
+}
+
+func (app *application) Paginate(w http.ResponseWriter, r *http.Request) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		var input struct {
+			Page     int
+			PageSize int
+		}
+
+		v := validator.New()
+		qs := r.URL.Query()
+
+		input.Page = app.readInt(qs, "page", 1, v)
+		input.PageSize = app.readInt(qs, "page_size", 20, v)
+
+		if data.ValidatePagination(v, input); !v.Valid() {
+			app.failedValidationResponse(w, r, v.Errors)
+			return nil
+		}
+
+		page := input.Page
+		if page == 0 {
+			page = 1
+		}
+
+		pageSize := input.PageSize
+		switch {
+		case pageSize > 100:
+			pageSize = 100
+		case pageSize <= 0:
+			pageSize = 10
+		}
+
+		offset := (page - 1) * pageSize
+		return db.Offset(offset).Limit(pageSize)
+	}
 }

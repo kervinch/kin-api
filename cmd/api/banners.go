@@ -196,19 +196,6 @@ func (app *application) deleteBannerHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (app *application) gormListBannerHandler(w http.ResponseWriter, r *http.Request) {
-	banners, err := app.gorm.Banners.GetAll()
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), banners, nil)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
-}
-
 // ====================================================================================
 // Business Handlers
 // ====================================================================================
@@ -221,6 +208,182 @@ func (app *application) getBannersHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), banners, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+// ====================================================================================
+// GORM Handlers
+// ====================================================================================
+
+func (app *application) gormListBannerHandler(w http.ResponseWriter, r *http.Request) {
+	var pagination data.Pagination
+
+	v := validator.New()
+	qs := r.URL.Query()
+
+	pagination.Page = app.readInt(qs, "page", 1, v)
+	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
+
+	banners, metadata, err := app.gorm.Banners.GetAll(pagination)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), envelope{"result": banners, "metadata": metadata}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) gormShowBannerHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	banner, err := app.gorm.Banners.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), banner, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) gormCreateBannerHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		ImageURL    string `json:"image_url"`
+		Title       string `json:"title"`
+		Deeplink    string `json:"deeplink"`
+		OutboundURL string `json:"outbound_url"`
+		IsActive    bool   `json:"is_active"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	banner := &data.Banner{
+		ImageURL:    input.ImageURL,
+		Title:       input.Title,
+		Deeplink:    input.Deeplink,
+		OutboundURL: input.OutboundURL,
+		IsActive:    input.IsActive,
+	}
+
+	v := validator.New()
+
+	if data.ValidateBanner(v, banner); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	err = app.gorm.Banners.Insert(banner)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	headers := make(http.Header)
+	headers.Set("Location", fmt.Sprintf("/v1/banners/%d", banner.ID))
+
+	err = app.writeJSON(w, http.StatusCreated, http.StatusText(http.StatusCreated), banner, headers)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) gormFullUpdateBannerHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	banner, err := app.gorm.Banners.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	var input struct {
+		ImageURL    string `json:"image_url"`
+		Title       string `json:"title"`
+		Deeplink    string `json:"deeplink"`
+		OutboundURL string `json:"outbound_url"`
+		IsActive    bool   `json:"is_active"`
+	}
+
+	err = app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	banner.ImageURL = input.ImageURL
+	banner.Title = input.Title
+	banner.Deeplink = input.Deeplink
+	banner.OutboundURL = input.OutboundURL
+	banner.IsActive = input.IsActive
+
+	v := validator.New()
+
+	if data.ValidateBanner(v, banner); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	err = app.gorm.Banners.Update(banner)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), banner, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) gormDeleteBannerHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	err = app.gorm.Banners.Delete(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), "banner successfully deleted", nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

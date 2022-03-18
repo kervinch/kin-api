@@ -14,6 +14,11 @@ type Filters struct {
 	SortSafeList []string
 }
 
+type Pagination struct {
+	Page     int
+	PageSize int
+}
+
 type Metadata struct {
 	CurrentPage  int `json:"current_page,omitempty"`
 	PageSize     int `json:"page_size,omitempty"`
@@ -68,4 +73,11 @@ func ValidateFilters(v *validator.Validator, f Filters) {
 	v.Check(f.PageSize > 0, "page_size", "must be greater than zero")
 	v.Check(f.PageSize <= 100, "page_size", "must be a maximum of 100")
 	v.Check(validator.In(f.Sort, f.SortSafeList...), "sort", "invalid sort value")
+}
+
+func ValidatePagination(v *validator.Validator, p Pagination) {
+	v.Check(p.Page > 0, "page", "must be greater than zero")
+	v.Check(p.Page < 10_000_000, "page", "must be a maximum of 10 million")
+	v.Check(p.PageSize > 0, "page_size", "must be greater than zero")
+	v.Check(p.PageSize <= 100, "page_size", "must be a maximum of 100")
 }

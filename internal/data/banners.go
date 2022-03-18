@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/kervinch/internal/validator"
+	"gorm.io/gorm"
 )
 
 type Banner struct {
@@ -31,6 +32,10 @@ func ValidateBanner(v *validator.Validator, banner *Banner) {
 
 type BannerModel struct {
 	DB *sql.DB
+}
+
+type GormBannerModel struct {
+	DB *gorm.DB
 }
 
 // ====================================================================================
@@ -246,4 +251,106 @@ func (m BannerModel) GetAPI() ([]*Banner, error) {
 	}
 
 	return banners, nil
+}
+
+// ====================================================================================
+// GORM Functions
+// ====================================================================================
+
+func (g GormBannerModel) GetAll(p Pagination) ([]*Banner, Metadata, error) {
+	var banners []*Banner
+	var count int64
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := g.DB.WithContext(ctx).Scopes(Paginate(p)).Where("is_active", true).Find(&banners).Error
+	if err != nil {
+		return nil, Metadata{}, err
+	}
+
+	err = g.DB.Table("banners").Where("is_active", true).Count(&count).Error
+	if err != nil {
+		return nil, Metadata{}, err
+	}
+
+	metadata := calculateMetadata(int(count), p.Page, p.PageSize)
+
+	return banners, metadata, nil
+}
+
+func (g GormBannerModel) Get(id int64) (*Banner, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+
+	var banner *Banner
+
+	err := g.DB.First(&banner, id).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return banner, nil
+}
+
+func (g GormBannerModel) Insert(banner *Banner) error {
+	err := g.DB.Create(&banner).Error
+
+	return err
+}
+
+func (g GormBannerModel) Update(b *Banner) error {
+	var banner *Banner
+
+	err := g.DB.First(&banner, b.ID).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+
+	banner.ImageURL = b.ImageURL
+	banner.Title = b.Title
+	banner.Deeplink = b.Deeplink
+	banner.OutboundURL = b.OutboundURL
+	banner.IsActive = b.IsActive
+
+	err = g.DB.Save(&banner).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (g GormBannerModel) Delete(id int64) error {
+	if id < 1 {
+		return ErrRecordNotFound
+	}
+
+	err := g.DB.Delete(&Banner{}, id).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
 }
