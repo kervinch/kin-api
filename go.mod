@@ -3,7 +3,7 @@ module github.com/kervinch
 go 1.17
 
 require (
-	github.com/aws/aws-sdk-go v1.43.17
+	github.com/aws/aws-sdk-go v1.43.24
 	github.com/felixge/httpsnoop v1.0.2
 	github.com/go-mail/mail/v2 v2.3.0
 	github.com/julienschmidt/httprouter v1.3.0
@@ -26,6 +26,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/text v0.3.7 // indirect
 )
 

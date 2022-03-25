@@ -18,6 +18,7 @@ import (
 	"github.com/kervinch/internal/data"
 	"github.com/kervinch/internal/jsonlog"
 	"github.com/kervinch/internal/mailer"
+	"github.com/kervinch/internal/s3"
 
 	_ "github.com/lib/pq"
 )
@@ -65,6 +66,7 @@ type application struct {
 	gorm   data.Gorm
 	mailer mailer.Mailer
 	wg     sync.WaitGroup
+	s3     s3.S3
 }
 
 func main() {
@@ -134,6 +136,7 @@ func main() {
 		models: data.NewModels(db),
 		gorm:   data.GormModels(gorm),
 		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
+		s3:     s3.New("kin-public"),
 	}
 
 	err = app.serve()

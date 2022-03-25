@@ -6,11 +6,12 @@ import (
 	"net/http"
 
 	"github.com/kervinch/internal/data"
+	"github.com/kervinch/internal/s3"
 	"github.com/kervinch/internal/validator"
 )
 
 // ====================================================================================
-// Backoffice Handlers
+// Backoffice Handlers (SQL)
 // ====================================================================================
 
 func (app *application) listBannersHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +108,7 @@ func (app *application) createBannerHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	headers := make(http.Header)
-	headers.Set("Location", fmt.Sprintf("/v1/banners/%d", banner.ID))
+	headers.Set("Location", fmt.Sprintf("/banners/%d", banner.ID))
 
 	err = app.writeJSON(w, http.StatusCreated, http.StatusText(http.StatusCreated), banner, headers)
 	if err != nil {
@@ -264,26 +265,26 @@ func (app *application) gormShowBannerHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (app *application) gormCreateBannerHandler(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		ImageURL    string `json:"image_url"`
-		Title       string `json:"title"`
-		Deeplink    string `json:"deeplink"`
-		OutboundURL string `json:"outbound_url"`
-		IsActive    bool   `json:"is_active"`
-	}
-
-	err := app.readJSON(w, r, &input)
+	r.ParseMultipartForm(data.DefaultMaxMemory)
+	file, handler, err := r.FormFile("banner_image")
 	if err != nil {
-		app.badRequestResponse(w, r, err)
+		app.fileNotFoundResponse(w, r, "banner_image")
+		return
+	}
+	defer file.Close()
+
+	url, err := app.s3.Upload(file, s3.BANNER, handler.Filename, handler.Header.Get("Content-Type"))
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	banner := &data.Banner{
-		ImageURL:    input.ImageURL,
-		Title:       input.Title,
-		Deeplink:    input.Deeplink,
-		OutboundURL: input.OutboundURL,
-		IsActive:    input.IsActive,
+		ImageURL:    url,
+		Title:       r.FormValue("title"),
+		Deeplink:    r.FormValue("deeplink"),
+		OutboundURL: r.FormValue("outbound_url"),
+		IsActive:    r.FormValue("is_active") == "true",
 	}
 
 	v := validator.New()
@@ -300,7 +301,7 @@ func (app *application) gormCreateBannerHandler(w http.ResponseWriter, r *http.R
 	}
 
 	headers := make(http.Header)
-	headers.Set("Location", fmt.Sprintf("/v1/banners/%d", banner.ID))
+	headers.Set("Location", fmt.Sprintf("/banners/%d", banner.ID))
 
 	err = app.writeJSON(w, http.StatusCreated, http.StatusText(http.StatusCreated), banner, headers)
 	if err != nil {
@@ -326,25 +327,27 @@ func (app *application) gormFullUpdateBannerHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	var input struct {
-		ImageURL    string `json:"image_url"`
-		Title       string `json:"title"`
-		Deeplink    string `json:"deeplink"`
-		OutboundURL string `json:"outbound_url"`
-		IsActive    bool   `json:"is_active"`
+	var url string
+	r.ParseMultipartForm(data.DefaultMaxMemory)
+	file, handler, _ := r.FormFile("banner_image")
+	if file != nil {
+		fmt.Printf("file not nil")
+		url, err = app.s3.Upload(file, s3.BANNER, handler.Filename, handler.Header.Get("Content-Type"))
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+	} else {
+		fmt.Printf("file is nil")
+		url = banner.ImageURL
 	}
+	// defer file.Close()
 
-	err = app.readJSON(w, r, &input)
-	if err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
-	banner.ImageURL = input.ImageURL
-	banner.Title = input.Title
-	banner.Deeplink = input.Deeplink
-	banner.OutboundURL = input.OutboundURL
-	banner.IsActive = input.IsActive
+	banner.ImageURL = url
+	banner.Title = r.FormValue("title")
+	banner.Deeplink = r.FormValue("deeplink")
+	banner.OutboundURL = r.FormValue("outbound_url")
+	banner.IsActive = r.FormValue("title") == "true"
 
 	v := validator.New()
 

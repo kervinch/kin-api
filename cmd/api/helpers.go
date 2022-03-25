@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -196,4 +197,18 @@ func (app *application) Paginate(w http.ResponseWriter, r *http.Request) func(db
 		offset := (page - 1) * pageSize
 		return db.Offset(offset).Limit(pageSize)
 	}
+}
+
+func (app *application) GetFileContentType(file io.Reader) (string, error) {
+	bytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		fmt.Println("Error reading the file...")
+		return "", err
+	}
+
+	// Use the net/http package's handy DectectContentType function. Always returns a valid
+	// content-type by returning "application/octet-stream" if no others seemed to match.
+	contentType := http.DetectContentType(bytes)
+
+	return contentType, nil
 }

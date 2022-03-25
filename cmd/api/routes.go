@@ -37,17 +37,17 @@ func (app *application) routes() http.Handler {
 	// ====================================================================================
 
 	// Banners
-	router.HandlerFunc(http.MethodGet, "/cms/banners", app.listBannersHandler)
-	router.HandlerFunc(http.MethodGet, "/cms/banners/:id", app.showBannerHandler)
-	router.HandlerFunc(http.MethodPost, "/cms/banners", app.createBannerHandler)
-	router.HandlerFunc(http.MethodPut, "/cms/banners/:id", app.fullUpdateBannerHandler)
-	router.HandlerFunc(http.MethodDelete, "/cms/banners/:id", app.deleteBannerHandler)
+	router.HandlerFunc(http.MethodGet, "/sql/banners", app.listBannersHandler)
+	router.HandlerFunc(http.MethodGet, "/sql/banners/:id", app.showBannerHandler)
+	router.HandlerFunc(http.MethodPost, "/sql/banners", app.createBannerHandler)
+	router.HandlerFunc(http.MethodPut, "/sql/banners/:id", app.fullUpdateBannerHandler)
+	router.HandlerFunc(http.MethodDelete, "/sql/banners/:id", app.deleteBannerHandler)
 
-	router.HandlerFunc(http.MethodGet, "/gorm/banners", app.gormListBannerHandler)
-	router.HandlerFunc(http.MethodGet, "/gorm/banners/:id", app.gormShowBannerHandler)
-	router.HandlerFunc(http.MethodPost, "/gorm/banners", app.gormCreateBannerHandler)
-	router.HandlerFunc(http.MethodPut, "/gorm/banners/:id", app.gormFullUpdateBannerHandler)
-	router.HandlerFunc(http.MethodDelete, "/gorm/banners/:id", app.gormDeleteBannerHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/banners", app.gormListBannerHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/banners/:id", app.gormShowBannerHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/banners", app.gormCreateBannerHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/banners/:id", app.gormFullUpdateBannerHandler)
+	router.HandlerFunc(http.MethodDelete, "/cms/banners/:id", app.gormDeleteBannerHandler)
 
 	// Movies
 	router.HandlerFunc(http.MethodGet, "/cms/movies", app.requireActivatedUser(app.listMoviesHandler))
