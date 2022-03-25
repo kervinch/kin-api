@@ -234,7 +234,7 @@ func (app *application) gormListBannerHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), envelope{"result": banners, "metadata": metadata}, nil)
+	err = app.writeJSONWithMeta(w, http.StatusOK, http.StatusText(http.StatusOK), banners, nil, metadata)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

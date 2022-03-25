@@ -59,6 +59,38 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, message str
 	return nil
 }
 
+func (app *application) writeJSONWithMeta(w http.ResponseWriter, status int, message string, data interface{}, headers http.Header, metadata interface{}) error {
+	result := make(map[string]interface{})
+
+	result["code"] = status
+	result["message"] = message
+	if status >= 400 {
+		result["error"] = data
+	} else {
+		result["data"] = data
+	}
+	if metadata != nil {
+		result["metadata"] = metadata
+	}
+
+	js, err := json.Marshal(result)
+	if err != nil {
+		return err
+	}
+
+	js = append(js, '\n')
+
+	for key, value := range headers {
+		w.Header()[key] = value
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(js)
+
+	return nil
+}
+
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	maxBytes := 1_048_576
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))

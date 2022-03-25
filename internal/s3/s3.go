@@ -12,7 +12,7 @@ import (
 const (
 	URL    = "https://kin-public.s3.ap-southeast-1.amazonaws.com/"
 	REGION = "ap-southeast-1"
-	BANNER = "banner/"
+	BANNER = "banners/"
 )
 
 type S3 struct {
