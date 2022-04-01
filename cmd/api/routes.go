@@ -32,6 +32,9 @@ func (app *application) routes() http.Handler {
 	// Banners
 	router.HandlerFunc(http.MethodGet, "/api/banners", app.getBannersHandler)
 
+	// Brands
+	router.HandlerFunc(http.MethodGet, "/api/brands", app.getBrandsHandler)
+
 	// ====================================================================================
 	// CMS - Backoffice Routes
 	// ====================================================================================
@@ -48,6 +51,13 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/cms/banners", app.gormCreateBannerHandler)
 	router.HandlerFunc(http.MethodPut, "/cms/banners/:id", app.gormFullUpdateBannerHandler)
 	router.HandlerFunc(http.MethodDelete, "/cms/banners/:id", app.gormDeleteBannerHandler)
+
+	// Brands
+	router.HandlerFunc(http.MethodGet, "/cms/brands", app.listBrandsHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/brands/:id", app.showBrandHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/brands", app.createBrandHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/brands/:id", app.updateBrandHandler)
+	router.HandlerFunc(http.MethodDelete, "/cms/brands/:id", app.deleteBrandHandler)
 
 	// Movies
 	router.HandlerFunc(http.MethodGet, "/cms/movies", app.requireActivatedUser(app.listMoviesHandler))
