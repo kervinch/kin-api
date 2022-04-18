@@ -14,6 +14,7 @@ const (
 	REGION = "ap-southeast-1"
 	BANNER = "banners/"
 	BRAND  = "brands/"
+	BLOG   = "blogs/"
 )
 
 type S3 struct {

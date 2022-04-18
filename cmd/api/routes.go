@@ -32,6 +32,9 @@ func (app *application) routes() http.Handler {
 	// Banners
 	router.HandlerFunc(http.MethodGet, "/api/banners", app.getBannersHandler)
 
+	// Blogs
+	router.HandlerFunc(http.MethodGet, "/api/blogs", app.getBlogsHandler)
+
 	// Brands
 	router.HandlerFunc(http.MethodGet, "/api/brands", app.getBrandsHandler)
 
@@ -51,6 +54,13 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/cms/banners", app.gormCreateBannerHandler)
 	router.HandlerFunc(http.MethodPut, "/cms/banners/:id", app.gormFullUpdateBannerHandler)
 	router.HandlerFunc(http.MethodDelete, "/cms/banners/:id", app.gormDeleteBannerHandler)
+
+	// Blogs
+	router.HandlerFunc(http.MethodGet, "/cms/blogs", app.listBlogsHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/blogs/:id", app.showBlogHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/blogs", app.createBlogHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/blogs/:id", app.updateBlogHandler)
+	router.HandlerFunc(http.MethodDelete, "/cms/blogs/:id", app.deleteBlogHandler)
 
 	// Brands
 	router.HandlerFunc(http.MethodGet, "/cms/brands", app.listBrandsHandler)

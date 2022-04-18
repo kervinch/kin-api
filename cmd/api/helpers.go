@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gosimple/slug"
 	"github.com/julienschmidt/httprouter"
 	"github.com/kervinch/internal/data"
 	"github.com/kervinch/internal/validator"
@@ -243,4 +244,9 @@ func (app *application) GetFileContentType(file io.Reader) (string, error) {
 	contentType := http.DetectContentType(bytes)
 
 	return contentType, nil
+}
+
+func (app *application) slugify(text string) string {
+	slugged := slug.Make(text)
+	return slugged
 }

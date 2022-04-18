@@ -6,15 +6,17 @@ require (
 	github.com/aws/aws-sdk-go v1.43.24
 	github.com/felixge/httpsnoop v1.0.2
 	github.com/go-mail/mail/v2 v2.3.0
+	github.com/gosimple/slug v1.12.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.4
-	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
+	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11
 	gorm.io/driver/postgres v1.3.1
 	gorm.io/gorm v1.23.2
 )
 
 require (
+	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.11.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
