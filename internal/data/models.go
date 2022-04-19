@@ -21,9 +21,10 @@ type Models struct {
 }
 
 type Gorm struct {
-	Banners GormBannerModel
-	Brands  BrandModel
-	Blogs   BlogModel
+	Banners        GormBannerModel
+	Brands         BrandModel
+	Blogs          BlogModel
+	BlogCategories BlogCategoryModel
 }
 
 func NewModels(db *sql.DB) Models {
@@ -38,9 +39,10 @@ func NewModels(db *sql.DB) Models {
 
 func GormModels(db *gorm.DB) Gorm {
 	return Gorm{
-		Banners: GormBannerModel{DB: db},
-		Brands:  BrandModel{DB: db},
-		Blogs:   BlogModel{DB: db},
+		Banners:        GormBannerModel{DB: db},
+		Brands:         BrandModel{DB: db},
+		Blogs:          BlogModel{DB: db},
+		BlogCategories: BlogCategoryModel{DB: db},
 	}
 }
 

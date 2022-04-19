@@ -25,14 +25,14 @@ func (app *application) listBlogsHandler(w http.ResponseWriter, r *http.Request)
 	pagination.Page = app.readInt(qs, "page", 1, v)
 	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
 
-	brands, metadata, err := app.gorm.Blogs.GetAll(pagination)
+	blogs, metadata, err := app.gorm.Blogs.GetAll(pagination)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.writeJSONWithMeta(w, http.StatusOK, http.StatusText(http.StatusOK), brands, nil, metadata)
+	err = app.writeJSONWithMeta(w, http.StatusOK, http.StatusText(http.StatusOK), blogs, nil, metadata)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -45,7 +45,7 @@ func (app *application) showBlogHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	brand, err := app.gorm.Blogs.Get(id)
+	blog, err := app.gorm.Blogs.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -56,7 +56,7 @@ func (app *application) showBlogHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), brand, nil)
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), blog, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -84,7 +84,7 @@ func (app *application) createBlogHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	blog := &data.Blog{
-		BlogCategoryID: int64(blogCategoryId),
+		BlogCategoryID: blogCategoryId,
 		Thumbnail:      url,
 		Title:          r.FormValue("title"),
 		Description:    r.FormValue("description"),
@@ -161,7 +161,7 @@ func (app *application) updateBlogHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	blog.Thumbnail = url
-	blog.BlogCategoryID = int64(blogCategoryId)
+	blog.BlogCategoryID = blogCategoryId
 	blog.Title = r.FormValue("title")
 	blog.Description = r.FormValue("description")
 	blog.Content = r.FormValue("content")
@@ -207,7 +207,7 @@ func (app *application) deleteBlogHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), "brand successfully deleted", nil)
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), "blog successfully deleted", nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -218,14 +218,42 @@ func (app *application) deleteBlogHandler(w http.ResponseWriter, r *http.Request
 // ====================================================================================
 
 func (app *application) getBlogsHandler(w http.ResponseWriter, r *http.Request) {
-	blogs, err := app.gorm.Blogs.GetAPI()
+	var pagination data.Pagination
+
+	v := validator.New()
+	qs := r.URL.Query()
+
+	pagination.Page = app.readInt(qs, "page", 1, v)
+	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
+
+	blogs, metadata, err := app.gorm.Blogs.GetAPI(pagination)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), blogs, nil)
+	err = app.writeJSONWithMeta(w, http.StatusOK, http.StatusText(http.StatusOK), blogs, nil, metadata)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) getBlogBySlugHandler(w http.ResponseWriter, r *http.Request) {
+	slug := app.readSlugParam(r)
+
+	blog, err := app.gorm.Blogs.GetBySlug(slug)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), blog, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

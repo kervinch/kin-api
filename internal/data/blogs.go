@@ -10,23 +10,24 @@ import (
 )
 
 type Blog struct {
-	ID             int64     `json:"id"`
-	BlogCategoryID int64     `json:"blog_category_id"`
-	Thumbnail      string    `json:"thumbnail"`
-	Title          string    `json:"title"`
-	Description    string    `json:"description"`
-	Content        string    `json:"content"`
-	Slug           string    `json:"slug"`
-	Type           string    `json:"type"`
-	PublishedAt    time.Time `json:"published_at"`
-	Feature        bool      `json:"feature"`
-	Status         string    `json:"status"`
-	Tags           string    `json:"tags"`
-	CreatedBy      int64     `json:"created_by"`
-	DeletedAt      time.Time `json:"-"`
-	CreatedAt      time.Time `json:"-"`
-	UpdatedAt      time.Time `json:"-"`
-	CreatedByText  string    `json:"created_by_text"`
+	ID             int64        `json:"id"`
+	BlogCategory   BlogCategory `json:"blog_category"`
+	BlogCategoryID int          `json:"blog_category_id"`
+	Thumbnail      string       `json:"thumbnail"`
+	Title          string       `json:"title"`
+	Description    string       `json:"description"`
+	Content        string       `json:"content"`
+	Slug           string       `json:"slug"`
+	Type           string       `json:"type"`
+	PublishedAt    time.Time    `json:"published_at"`
+	Feature        bool         `json:"feature"`
+	Status         string       `json:"status"`
+	Tags           string       `json:"tags"`
+	CreatedBy      int          `json:"created_by"`
+	DeletedAt      time.Time    `json:"-"`
+	CreatedAt      time.Time    `json:"-"`
+	UpdatedAt      time.Time    `json:"-"`
+	CreatedByText  string       `json:"created_by_text"`
 }
 
 func ValidateBlog(v *validator.Validator, blog *Blog) {
@@ -52,12 +53,12 @@ func (m BlogModel) GetAll(p Pagination) ([]*Blog, Metadata, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Where("status", "published").Find(&blogs).Error
+	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Order("status").Preload("BlogCategory").Find(&blogs).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
 
-	err = m.DB.Table("blogs").Where("status", "published").Count(&count).Error
+	err = m.DB.Table("blogs").Count(&count).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
@@ -74,7 +75,7 @@ func (m BlogModel) Get(id int64) (*Blog, error) {
 
 	var blog *Blog
 
-	err := m.DB.First(&blog, id).Error
+	err := m.DB.Preload("BlogCategory").First(&blog, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -152,18 +153,46 @@ func (m BlogModel) Delete(id int64) error {
 // Business Functions
 // ====================================================================================
 
-func (m BlogModel) GetAPI() ([]*Blog, error) {
+func (m BlogModel) GetAPI(p Pagination) ([]*Blog, Metadata, error) {
 	var blogs []*Blog
+	var count int64
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Where("status", "published").Order("feature").Limit(8).Find(&blogs).Error
+	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Where("status = ?", "published").Preload("BlogCategory").Find(&blogs).Error
 	if err != nil {
-		return nil, err
+		return nil, Metadata{}, err
 	}
 
-	return blogs, nil
+	err = m.DB.Table("blogs").Where("status = ?", "published").Count(&count).Error
+	if err != nil {
+		return nil, Metadata{}, err
+	}
+
+	metadata := calculateMetadata(int(count), p.Page, p.PageSize)
+
+	return blogs, metadata, nil
+}
+
+func (m BlogModel) GetBySlug(slug string) (*Blog, error) {
+	if slug == "" {
+		return nil, ErrRecordNotFound
+	}
+
+	var blog *Blog
+
+	err := m.DB.Preload("BlogCategory").Where("slug = ?", slug).First(&blog).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return blog, nil
 }
 
 func (m BlogModel) GetRecommendations() ([]*Blog, error) {
@@ -172,7 +201,7 @@ func (m BlogModel) GetRecommendations() ([]*Blog, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Where("status = 'published'").Order("created_at desc").Limit(8).Find(&blogs).Error
+	err := m.DB.WithContext(ctx).Where("status = ?", "published").Order("created_at desc").Limit(8).Preload("BlogCategory").Find(&blogs).Error
 	if err != nil {
 		return nil, err
 	}

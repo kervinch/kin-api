@@ -34,6 +34,12 @@ func (app *application) routes() http.Handler {
 
 	// Blogs
 	router.HandlerFunc(http.MethodGet, "/api/blogs", app.getBlogsHandler)
+	router.HandlerFunc(http.MethodGet, "/api/blog/:slug", app.getBlogBySlugHandler)
+	router.HandlerFunc(http.MethodGet, "/api/blogs/recommendation", app.getBlogsRecommendationHandler)
+
+	// Blog Categories
+	router.HandlerFunc(http.MethodGet, "/api/blog-categories", app.getBlogCategoriesHandler)
+	router.HandlerFunc(http.MethodGet, "/api/blog-categories/:slug", app.getBlogCategoriesBySlugHandler)
 
 	// Brands
 	router.HandlerFunc(http.MethodGet, "/api/brands", app.getBrandsHandler)
@@ -62,6 +68,13 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPut, "/cms/blogs/:id", app.updateBlogHandler)
 	router.HandlerFunc(http.MethodDelete, "/cms/blogs/:id", app.deleteBlogHandler)
 
+	// Blog Categories
+	router.HandlerFunc(http.MethodGet, "/cms/blog-categories", app.listBlogCategoriesHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/blog-categories/:id", app.showBlogCategoryHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/blog-categories", app.createBlogCategoryHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/blog-categories/:id", app.updateBlogCategoryHandler)
+	router.HandlerFunc(http.MethodDelete, "/cms/blog-categories/:id", app.deleteBlogCategoryHandler)
+
 	// Brands
 	router.HandlerFunc(http.MethodGet, "/cms/brands", app.listBrandsHandler)
 	router.HandlerFunc(http.MethodGet, "/cms/brands/:id", app.showBrandHandler)
@@ -71,7 +84,6 @@ func (app *application) routes() http.Handler {
 
 	// Movies
 	router.HandlerFunc(http.MethodGet, "/cms/movies", app.requireActivatedUser(app.listMoviesHandler))
-	router.HandlerFunc(http.MethodGet, "/cms/free/movies", app.listMoviesHandler)
 	router.HandlerFunc(http.MethodPost, "/cms/movies", app.requirePermission("movies:write", app.createMovieHandler))
 	router.HandlerFunc(http.MethodGet, "/cms/movies/:id", app.requireActivatedUser(app.showMovieHandler))
 	router.HandlerFunc(http.MethodPut, "/cms/movies/:id", app.requireActivatedUser(app.fullUpdateMovieHandler))

@@ -13,7 +13,7 @@ type Brand struct {
 	ID          int64     `json:"id"`
 	ImageURL    string    `json:"image_url"`
 	Name        string    `json:"name"`
-	OrderNumber string    `json:"order_number"`
+	OrderNumber int       `json:"order_number"`
 	IsActive    bool      `json:"is_active"`
 	CreatedAt   time.Time `json:"-"`
 	UpdatedAt   time.Time `json:"-"`

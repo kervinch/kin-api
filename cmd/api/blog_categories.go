@@ -15,7 +15,7 @@ import (
 // Backoffice Handlers
 // ====================================================================================
 
-func (app *application) listBrandsHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) listBlogCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	var pagination data.Pagination
 
 	v := validator.New()
@@ -24,7 +24,7 @@ func (app *application) listBrandsHandler(w http.ResponseWriter, r *http.Request
 	pagination.Page = app.readInt(qs, "page", 1, v)
 	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
 
-	brands, metadata, err := app.gorm.Brands.GetAll(pagination)
+	brands, metadata, err := app.gorm.BlogCategories.GetAll(pagination)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -37,14 +37,14 @@ func (app *application) listBrandsHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (app *application) showBrandHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) showBlogCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
 	}
 
-	brand, err := app.gorm.Brands.Get(id)
+	blogCategory, err := app.gorm.BlogCategories.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -55,22 +55,22 @@ func (app *application) showBrandHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), brand, nil)
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), blogCategory, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 }
 
-func (app *application) createBrandHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) createBlogCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(data.DefaultMaxMemory)
-	file, handler, err := r.FormFile("brand_image")
+	file, handler, err := r.FormFile("image")
 	if err != nil {
-		app.fileNotFoundResponse(w, r, "brand_image")
+		app.fileNotFoundResponse(w, r, "image")
 		return
 	}
 	defer file.Close()
 
-	url, err := app.s3.Upload(file, s3.BRAND, handler.Filename, handler.Header.Get("Content-Type"))
+	url, err := app.s3.Upload(file, s3.BLOG_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -82,43 +82,45 @@ func (app *application) createBrandHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	brand := &data.Brand{
-		ImageURL:    url,
+	blogCategory := &data.BlogCategory{
+		Image:       url,
 		Name:        r.FormValue("name"),
+		Slug:        app.slugify(r.FormValue("name")),
+		Type:        "all",
+		Status:      r.FormValue("status"),
 		OrderNumber: orderNumber,
-		IsActive:    r.FormValue("is_active") == "true",
 	}
 
 	v := validator.New()
 
-	if data.ValidateBrand(v, brand); !v.Valid() {
+	if data.ValidateBlogCategory(v, blogCategory); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	err = app.gorm.Brands.Insert(brand)
+	err = app.gorm.BlogCategories.Insert(blogCategory)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	headers := make(http.Header)
-	headers.Set("Location", fmt.Sprintf("/brands/%d", brand.ID))
+	headers.Set("Location", fmt.Sprintf("/blog_categories/%d", blogCategory.ID))
 
-	err = app.writeJSON(w, http.StatusCreated, http.StatusText(http.StatusCreated), brand, headers)
+	err = app.writeJSON(w, http.StatusCreated, http.StatusText(http.StatusCreated), blogCategory, headers)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 }
 
-func (app *application) updateBrandHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) updateBlogCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
 	}
 
-	brand, err := app.gorm.Brands.Get(id)
+	blogCategory, err := app.gorm.BlogCategories.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -131,17 +133,16 @@ func (app *application) updateBrandHandler(w http.ResponseWriter, r *http.Reques
 
 	var url string
 	r.ParseMultipartForm(data.DefaultMaxMemory)
-	file, handler, _ := r.FormFile("brand_image")
+	file, handler, _ := r.FormFile("image")
 	if file != nil {
-		fmt.Printf("File not nil")
-		url, err = app.s3.Upload(file, s3.BRAND, handler.Filename, handler.Header.Get("Content-Type"))
+		url, err = app.s3.Upload(file, s3.BLOG_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
 		}
 	} else {
 		fmt.Printf("File is nil")
-		url = brand.ImageURL
+		url = blogCategory.Image
 	}
 	// defer file.Close()
 
@@ -151,38 +152,39 @@ func (app *application) updateBrandHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	brand.ImageURL = url
-	brand.Name = r.FormValue("name")
-	brand.OrderNumber = orderNumber
-	brand.IsActive = r.FormValue("is_active") == "true"
+	blogCategory.Image = url
+	blogCategory.Name = r.FormValue("name")
+	blogCategory.Slug = app.slugify(r.FormValue("name"))
+	blogCategory.Status = r.FormValue("status")
+	blogCategory.OrderNumber = orderNumber
 
 	v := validator.New()
 
-	if data.ValidateBrand(v, brand); !v.Valid() {
+	if data.ValidateBlogCategory(v, blogCategory); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	err = app.gorm.Brands.Update(brand)
+	err = app.gorm.BlogCategories.Update(blogCategory)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), brand, nil)
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), blogCategory, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 }
 
-func (app *application) deleteBrandHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) deleteBlogCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
 	}
 
-	err = app.gorm.Brands.Delete(id)
+	err = app.gorm.BlogCategories.Delete(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -193,7 +195,7 @@ func (app *application) deleteBrandHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), "brand successfully deleted", nil)
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), "blog category successfully deleted", nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -203,15 +205,35 @@ func (app *application) deleteBrandHandler(w http.ResponseWriter, r *http.Reques
 // Business Handlers
 // ====================================================================================
 
-func (app *application) getBrandsHandler(w http.ResponseWriter, r *http.Request) {
-	brands, err := app.gorm.Brands.GetAPI()
+func (app *application) getBlogCategoriesHandler(w http.ResponseWriter, r *http.Request) {
+	blogCategories, err := app.gorm.BlogCategories.GetAPI()
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), brands, nil)
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), blogCategories, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) getBlogCategoriesBySlugHandler(w http.ResponseWriter, r *http.Request) {
+	slug := app.readSlugParam(r)
+
+	blogCategory, err := app.gorm.BlogCategories.GetBySlug(slug)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), blogCategory, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

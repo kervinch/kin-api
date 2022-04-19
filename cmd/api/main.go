@@ -94,7 +94,7 @@ func main() {
 		return nil
 	})
 
-	displayVersion := flag.Bool("version", false, "Display versiona and exit")
+	displayVersion := flag.Bool("version", false, "Display versions and exit")
 
 	flag.Parse()
 

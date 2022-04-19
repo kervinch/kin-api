@@ -31,6 +31,14 @@ func (app *application) readIDParam(r *http.Request) (int64, error) {
 	return id, nil
 }
 
+func (app *application) readSlugParam(r *http.Request) string {
+	params := httprouter.ParamsFromContext(r.Context())
+
+	slug := params.ByName("slug")
+
+	return slug
+}
+
 func (app *application) writeJSON(w http.ResponseWriter, status int, message string, data interface{}, headers http.Header) error {
 	result := make(map[string]interface{})
 

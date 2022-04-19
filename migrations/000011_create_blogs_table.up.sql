@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS blogs (
   id bigserial PRIMARY KEY,
-  blog_category_id integer CHECK (blog_category_id > 0) NOT NULL,
+  blog_category_id bigint NOT NULL REFERENCES blog_categories ON DELETE CASCADE,
   thumbnail text NOT NULL,
   title text NOT NULL,
   description text NOT NULL,
