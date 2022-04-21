@@ -70,13 +70,15 @@ func (app *application) createProductCategoryHandler(w http.ResponseWriter, r *h
 	}
 	defer file.Close()
 
-	var url string
+	ch := make(chan string)
 	app.background(func() {
-		url, err = app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
+		url, err := app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
 		}
+
+		ch <- url
 	})
 
 	orderNumber, err := strconv.Atoi(r.FormValue("order_number"))
@@ -86,7 +88,7 @@ func (app *application) createProductCategoryHandler(w http.ResponseWriter, r *h
 	}
 
 	productCategory := &data.ProductCategory{
-		Image:       url,
+		Image:       <-ch,
 		Name:        r.FormValue("name"),
 		Slug:        app.slugify(r.FormValue("name")),
 		IsActive:    r.FormValue("is_active") == "true",
@@ -133,20 +135,24 @@ func (app *application) updateProductCategoryHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	var url string
+	var imgURL string
+	ch := make(chan string)
 	r.ParseMultipartForm(data.DefaultMaxMemory)
 	file, handler, _ := r.FormFile("image")
 	if file != nil {
 		app.background(func() {
-			url, err = app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
+			url, err := app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
 			if err != nil {
 				app.serverErrorResponse(w, r, err)
 				return
 			}
+
+			ch <- url
 		})
+		imgURL = <-ch
 	} else {
 		fmt.Printf("File is nil")
-		url = productCategory.Image
+		imgURL = productCategory.Image
 	}
 	// defer file.Close()
 
@@ -156,7 +162,7 @@ func (app *application) updateProductCategoryHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	productCategory.Image = url
+	productCategory.Image = imgURL
 	productCategory.Name = r.FormValue("name")
 	productCategory.Slug = app.slugify(r.FormValue("name"))
 	productCategory.IsActive = r.FormValue("is_active") == "true"
