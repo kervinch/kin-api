@@ -64,22 +64,19 @@ func (app *application) showProductCategoryHandler(w http.ResponseWriter, r *htt
 func (app *application) createProductCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(data.DefaultMaxMemory)
 	file, handler, err := r.FormFile("image")
-	if err != nil {
-		app.fileNotFoundResponse(w, r, "image")
-		return
+	ch := make(chan string)
+	if err == nil {
+		app.background(func() {
+			url, err := app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
+			if err != nil {
+				app.serverErrorResponse(w, r, err)
+				return
+			}
+
+			ch <- url
+		})
 	}
 	defer file.Close()
-
-	ch := make(chan string)
-	app.background(func() {
-		url, err := app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
-		if err != nil {
-			app.serverErrorResponse(w, r, err)
-			return
-		}
-
-		ch <- url
-	})
 
 	orderNumber, err := strconv.Atoi(r.FormValue("order_number"))
 	if err != nil {
