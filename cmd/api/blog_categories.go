@@ -24,14 +24,14 @@ func (app *application) listBlogCategoriesHandler(w http.ResponseWriter, r *http
 	pagination.Page = app.readInt(qs, "page", 1, v)
 	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
 
-	brands, metadata, err := app.gorm.BlogCategories.GetAll(pagination)
+	blogCategories, metadata, err := app.gorm.BlogCategories.GetAll(pagination)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.writeJSONWithMeta(w, http.StatusOK, http.StatusText(http.StatusOK), brands, nil, metadata)
+	err = app.writeJSONWithMeta(w, http.StatusOK, http.StatusText(http.StatusOK), blogCategories, nil, metadata)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

@@ -264,12 +264,12 @@ func (g GormBannerModel) GetAll(p Pagination) ([]*Banner, Metadata, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := g.DB.WithContext(ctx).Scopes(Paginate(p)).Where("is_active", true).Find(&banners).Error
+	err := g.DB.WithContext(ctx).Scopes(Paginate(p)).Find(&banners).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
 
-	err = g.DB.Table("banners").Where("is_active", true).Count(&count).Error
+	err = g.DB.Table("banners").Count(&count).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}

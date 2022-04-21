@@ -10,12 +10,13 @@ import (
 )
 
 const (
-	URL           = "https://kin-public.s3.ap-southeast-1.amazonaws.com/"
-	REGION        = "ap-southeast-1"
-	BANNER        = "banners/"
-	BRAND         = "brands/"
-	BLOG          = "blogs/"
-	BLOG_CATEGORY = "blog_categories/"
+	URL              = "https://kin-public.s3.ap-southeast-1.amazonaws.com/"
+	REGION           = "ap-southeast-1"
+	BANNER           = "banners/"
+	BRAND            = "brands/"
+	BLOG             = "blogs/"
+	BLOG_CATEGORY    = "blog_categories/"
+	PRODUCT_CATEGORY = "product_categories/"
 )
 
 type S3 struct {

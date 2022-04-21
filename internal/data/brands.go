@@ -40,12 +40,12 @@ func (m BrandModel) GetAll(p Pagination) ([]*Brand, Metadata, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Where("is_active", true).Find(&brands).Error
+	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Find(&brands).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
 
-	err = m.DB.Table("brands").Where("is_active", true).Count(&count).Error
+	err = m.DB.Table("brands").Count(&count).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}

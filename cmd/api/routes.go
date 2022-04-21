@@ -44,6 +44,10 @@ func (app *application) routes() http.Handler {
 	// Brands
 	router.HandlerFunc(http.MethodGet, "/api/brands", app.getBrandsHandler)
 
+	// Product Categories
+	router.HandlerFunc(http.MethodGet, "/api/product-categories", app.getProductCategoriesHandler)
+	router.HandlerFunc(http.MethodGet, "/api/product-categories/:slug", app.getProductCategoriesBySlugHandler)
+
 	// ====================================================================================
 	// CMS - Backoffice Routes
 	// ====================================================================================
@@ -89,6 +93,13 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPut, "/cms/movies/:id", app.requireActivatedUser(app.fullUpdateMovieHandler))
 	router.HandlerFunc(http.MethodPatch, "/cms/movies/:id", app.requirePermission("movies:write", app.updateMovieHandler))
 	router.HandlerFunc(http.MethodDelete, "/cms/movies/:id", app.requirePermission("movies:write", app.deleteMovieHandler))
+
+	// Product Categories
+	router.HandlerFunc(http.MethodGet, "/cms/product-categories", app.listProductCategoriesHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/product-categories/:id", app.showProductCategoryHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/product-categories", app.createProductCategoryHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/product-categories/:id", app.updateProductCategoryHandler)
+	router.HandlerFunc(http.MethodDelete, "/cms/product-categories/:id", app.deleteProductCategoryHandler)
 
 	// ====================================================================================
 	// Miscellaneous Routes

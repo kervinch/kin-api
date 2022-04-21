@@ -43,12 +43,12 @@ func (m BlogCategoryModel) GetAll(p Pagination) ([]*BlogCategory, Metadata, erro
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Where("status = ?", "active").Find(&blogCategories).Error
+	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Find(&blogCategories).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
 
-	err = m.DB.Table("blog_categories").Where("status = ?", "active").Count(&count).Error
+	err = m.DB.Table("blog_categories").Count(&count).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
