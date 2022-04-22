@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS blog_categories (
   id bigserial PRIMARY KEY,
   image text NOT NULL,
   name text NOT NULL,
-  slug text NOT NULL,
+  slug text UNIQUE NOT NULL,
   type text NOT NULL,
   status varchar(255) NOT NULL,
   order_number integer,

@@ -90,6 +90,14 @@ func (m BlogModel) Get(id int64) (*Blog, error) {
 
 func (m BlogModel) Insert(blog *Blog) error {
 	err := m.DB.Create(&blog).Error
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "blogs_slug_key"`:
+			return ErrDuplicateSlug
+		default:
+			return err
+		}
+	}
 
 	return err
 }
@@ -123,6 +131,8 @@ func (m BlogModel) Update(b *Blog) error {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return ErrEditConflict
+		case err.Error() == `pq: duplicate key value violates unique constraint "blogs_slug_key"`:
+			return ErrDuplicateSlug
 		default:
 			return err
 		}

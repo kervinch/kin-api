@@ -52,6 +52,9 @@ func (app *application) routes() http.Handler {
 	// CMS - Backoffice Routes
 	// ====================================================================================
 
+	// Users
+	router.HandlerFunc(http.MethodPost, "/cms/users", app.registerAdminHandler)
+
 	// Banners
 	router.HandlerFunc(http.MethodGet, "/sql/banners", app.listBannersHandler)
 	router.HandlerFunc(http.MethodGet, "/sql/banners/:id", app.showBannerHandler)

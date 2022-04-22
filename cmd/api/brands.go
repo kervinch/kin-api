@@ -131,17 +131,17 @@ func (app *application) updateBrandHandler(w http.ResponseWriter, r *http.Reques
 
 	var url string
 	r.ParseMultipartForm(data.DefaultMaxMemory)
-	file, handler, _ := r.FormFile("brand_image")
-	if file != nil {
+	file, handler, err := r.FormFile("brand_image")
+	if err == nil && handler.Size > 0 {
 		url, err = app.s3.Upload(file, s3.BRAND, handler.Filename, handler.Header.Get("Content-Type"))
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
 		}
+		defer file.Close()
 	} else {
 		url = brand.ImageURL
 	}
-	defer file.Close()
 
 	orderNumber, err := strconv.Atoi(r.FormValue("order_number"))
 	if err != nil {

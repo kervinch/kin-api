@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS blogs (
   title text NOT NULL,
   description text NOT NULL,
   content text NOT NULL,
-  slug text NOT NULL,
+  slug text UNIQUE NOT NULL,
   type text NOT NULL,
   published_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
   feature bool NOT NULL,

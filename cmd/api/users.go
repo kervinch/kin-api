@@ -9,6 +9,71 @@ import (
 	"github.com/kervinch/internal/validator"
 )
 
+// ====================================================================================
+// Backoffice Handlers
+// ====================================================================================
+
+func (app *application) registerAdminHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	admin := &data.User{
+		Name:      input.Name,
+		Email:     input.Email,
+		Activated: true,
+	}
+
+	err = admin.Password.Set(input.Password)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	v := validator.New()
+
+	if data.ValidateUser(v, admin); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	err = app.models.Users.Insert(admin, "admin")
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrDuplicateEmail):
+			v.AddError("email", "an admin with this email address already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// Add the "movies:read permission for the new user"
+	err = app.models.Permissions.AddForUser(admin.ID, "movies:read")
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusCreated, http.StatusText(http.StatusCreated), admin, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+// ====================================================================================
+// Business Handlers
+// ====================================================================================
+
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Name     string `json:"name"`
@@ -41,7 +106,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = app.models.Users.Insert(user)
+	err = app.models.Users.Insert(user, "user")
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateEmail):
@@ -50,13 +115,6 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
-		return
-	}
-
-	// Add the "movies:read permission for the new user"
-	err = app.models.Permissions.AddForUser(user.ID, "movies:read")
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
 		return
 	}
 
@@ -74,11 +132,10 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 		app.logger.PrintInfo(token.Plaintext, nil)
 		app.logger.PrintInfo(user.Email, nil)
-		// app.SendEmail(user.Email, "user_welcome.tmpl", data)
 		err = app.mailer.Send(user.Email, "Welcome to Kin!", "user_welcome.tmpl", data)
-		// if err != nil {
-		// 	app.logger.PrintError(err, nil)
-		// }
+		if err != nil {
+			app.logger.PrintError(err, nil)
+		}
 	})
 
 	err = app.writeJSON(w, http.StatusCreated, http.StatusText(http.StatusCreated), user, nil)

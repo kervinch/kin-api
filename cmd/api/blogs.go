@@ -108,7 +108,13 @@ func (app *application) createBlogHandler(w http.ResponseWriter, r *http.Request
 
 	err = app.gorm.Blogs.Insert(blog)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrDuplicateSlug):
+			v.AddError("slug", "an entry with this slug already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
@@ -141,17 +147,17 @@ func (app *application) updateBlogHandler(w http.ResponseWriter, r *http.Request
 
 	var url string
 	r.ParseMultipartForm(data.DefaultMaxMemory)
-	file, handler, _ := r.FormFile("thumbnail")
-	if file != nil {
+	file, handler, err := r.FormFile("thumbnail")
+	if err == nil && handler.Size > 0 {
 		url, err = app.s3.Upload(file, s3.BLOG, handler.Filename, handler.Header.Get("Content-Type"))
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
 		}
+		defer file.Close()
 	} else {
 		url = blog.Thumbnail
 	}
-	defer file.Close()
 
 	blogCategoryId, err := strconv.Atoi(r.FormValue("blog_category_id"))
 	if err != nil {

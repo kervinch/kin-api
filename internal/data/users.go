@@ -24,6 +24,7 @@ type User struct {
 	Password  password  `json:"-"`
 	Activated bool      `json:"activated"`
 	Version   int       `json:"version"`
+	Role      string    `json:"role,omitempty"`
 }
 
 func (u *User) IsAnonymous() bool {
@@ -91,13 +92,13 @@ type UserModel struct {
 	DB *sql.DB
 }
 
-func (m UserModel) Insert(user *User) error {
+func (m UserModel) Insert(user *User, role string) error {
 	query := `
-		INSERT INTO users (name, email, password_hash, activated)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO users (name, email, password_hash, activated, role)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, created_at, version`
 
-	args := []interface{}{user.Name, user.Email, user.Password.hash, user.Activated}
+	args := []interface{}{user.Name, user.Email, user.Password.hash, user.Activated, role}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

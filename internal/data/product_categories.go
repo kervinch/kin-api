@@ -77,6 +77,14 @@ func (m ProductCategoryModel) Get(id int64) (*ProductCategory, error) {
 
 func (m ProductCategoryModel) Insert(productCategory *ProductCategory) error {
 	err := m.DB.Create(&productCategory).Error
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "product_categories_slug_key"`:
+			return ErrDuplicateSlug
+		default:
+			return err
+		}
+	}
 
 	return err
 }
@@ -105,6 +113,8 @@ func (m ProductCategoryModel) Update(p *ProductCategory) error {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return ErrEditConflict
+		case err.Error() == `pq: duplicate key value violates unique constraint "product_categories_slug_key"`:
+			return ErrDuplicateSlug
 		default:
 			return err
 		}

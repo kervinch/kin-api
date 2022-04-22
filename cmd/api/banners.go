@@ -329,17 +329,17 @@ func (app *application) gormFullUpdateBannerHandler(w http.ResponseWriter, r *ht
 
 	var url string
 	r.ParseMultipartForm(data.DefaultMaxMemory)
-	file, handler, _ := r.FormFile("banner_image")
-	if file != nil {
+	file, handler, err := r.FormFile("banner_image")
+	if err == nil && handler.Size > 0 {
 		url, err = app.s3.Upload(file, s3.BANNER, handler.Filename, handler.Header.Get("Content-Type"))
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
 		}
+		defer file.Close()
 	} else {
 		url = banner.ImageURL
 	}
-	defer file.Close()
 
 	banner.ImageURL = url
 	banner.Title = r.FormValue("title")
@@ -356,7 +356,13 @@ func (app *application) gormFullUpdateBannerHandler(w http.ResponseWriter, r *ht
 
 	err = app.gorm.Banners.Update(banner)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrDuplicateSlug):
+			v.AddError("slug", "an entry with this slug already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

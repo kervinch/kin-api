@@ -100,7 +100,13 @@ func (app *application) createBlogCategoryHandler(w http.ResponseWriter, r *http
 
 	err = app.gorm.BlogCategories.Insert(blogCategory)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrDuplicateSlug):
+			v.AddError("slug", "an entry with this slug already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
@@ -133,17 +139,17 @@ func (app *application) updateBlogCategoryHandler(w http.ResponseWriter, r *http
 
 	var url string
 	r.ParseMultipartForm(data.DefaultMaxMemory)
-	file, handler, _ := r.FormFile("image")
-	if file != nil {
+	file, handler, err := r.FormFile("image")
+	if err == nil && handler.Size > 0 {
 		url, err = app.s3.Upload(file, s3.BLOG_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
 		}
+		defer file.Close()
 	} else {
 		url = blogCategory.Image
 	}
-	defer file.Close()
 
 	orderNumber, err := strconv.Atoi(r.FormValue("order_number"))
 	if err != nil {
@@ -166,7 +172,13 @@ func (app *application) updateBlogCategoryHandler(w http.ResponseWriter, r *http
 
 	err = app.gorm.BlogCategories.Update(blogCategory)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrDuplicateSlug):
+			v.AddError("slug", "an entry with this slug already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

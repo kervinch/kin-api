@@ -80,6 +80,14 @@ func (m BlogCategoryModel) Get(id int64) (*BlogCategory, error) {
 
 func (m BlogCategoryModel) Insert(blogCategory *BlogCategory) error {
 	err := m.DB.Create(&blogCategory).Error
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "blog_categories_slug_key"`:
+			return ErrDuplicateSlug
+		default:
+			return err
+		}
+	}
 
 	return err
 }
@@ -109,6 +117,8 @@ func (m BlogCategoryModel) Update(b *BlogCategory) error {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return ErrEditConflict
+		case err.Error() == `pq: duplicate key value violates unique constraint "blog_categories_slug_key"`:
+			return ErrDuplicateSlug
 		default:
 			return err
 		}
