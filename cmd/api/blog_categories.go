@@ -141,10 +141,9 @@ func (app *application) updateBlogCategoryHandler(w http.ResponseWriter, r *http
 			return
 		}
 	} else {
-		fmt.Printf("File is nil")
 		url = blogCategory.Image
 	}
-	// defer file.Close()
+	defer file.Close()
 
 	orderNumber, err := strconv.Atoi(r.FormValue("order_number"))
 	if err != nil {

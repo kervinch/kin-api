@@ -331,17 +331,15 @@ func (app *application) gormFullUpdateBannerHandler(w http.ResponseWriter, r *ht
 	r.ParseMultipartForm(data.DefaultMaxMemory)
 	file, handler, _ := r.FormFile("banner_image")
 	if file != nil {
-		fmt.Printf("file not nil")
 		url, err = app.s3.Upload(file, s3.BANNER, handler.Filename, handler.Header.Get("Content-Type"))
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
 		}
 	} else {
-		fmt.Printf("file is nil")
 		url = banner.ImageURL
 	}
-	// defer file.Close()
+	defer file.Close()
 
 	banner.ImageURL = url
 	banner.Title = r.FormValue("title")

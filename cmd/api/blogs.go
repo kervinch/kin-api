@@ -149,10 +149,9 @@ func (app *application) updateBlogHandler(w http.ResponseWriter, r *http.Request
 			return
 		}
 	} else {
-		fmt.Printf("File is nil")
 		url = blog.Thumbnail
 	}
-	// defer file.Close()
+	defer file.Close()
 
 	blogCategoryId, err := strconv.Atoi(r.FormValue("blog_category_id"))
 	if err != nil {

@@ -133,17 +133,15 @@ func (app *application) updateBrandHandler(w http.ResponseWriter, r *http.Reques
 	r.ParseMultipartForm(data.DefaultMaxMemory)
 	file, handler, _ := r.FormFile("brand_image")
 	if file != nil {
-		fmt.Printf("File not nil")
 		url, err = app.s3.Upload(file, s3.BRAND, handler.Filename, handler.Header.Get("Content-Type"))
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
 		}
 	} else {
-		fmt.Printf("File is nil")
 		url = brand.ImageURL
 	}
-	// defer file.Close()
+	defer file.Close()
 
 	orderNumber, err := strconv.Atoi(r.FormValue("order_number"))
 	if err != nil {

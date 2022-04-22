@@ -64,8 +64,8 @@ func (app *application) showProductCategoryHandler(w http.ResponseWriter, r *htt
 func (app *application) createProductCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(data.DefaultMaxMemory)
 	file, handler, err := r.FormFile("image")
-	ch := make(chan string)
 	var url string
+	ch := make(chan string)
 	if err == nil {
 		app.background(func() {
 			url, err = app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
@@ -78,10 +78,10 @@ func (app *application) createProductCategoryHandler(w http.ResponseWriter, r *h
 			close(ch)
 		})
 		url = <-ch
-		defer file.Close()
 	} else {
 		url = ""
 	}
+	defer file.Close()
 
 	orderNumber, err := strconv.Atoi(r.FormValue("order_number"))
 	if err != nil {
@@ -153,10 +153,10 @@ func (app *application) updateProductCategoryHandler(w http.ResponseWriter, r *h
 			close(ch)
 		})
 		imgURL = <-ch
-		defer file.Close()
 	} else {
 		imgURL = productCategory.Image
 	}
+	defer file.Close()
 
 	orderNumber, err := strconv.Atoi(r.FormValue("order_number"))
 	if err != nil {
