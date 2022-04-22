@@ -65,18 +65,23 @@ func (app *application) createProductCategoryHandler(w http.ResponseWriter, r *h
 	r.ParseMultipartForm(data.DefaultMaxMemory)
 	file, handler, err := r.FormFile("image")
 	ch := make(chan string)
+	var url string
 	if err == nil {
 		app.background(func() {
-			url, err := app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
+			url, err = app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
 			if err != nil {
 				app.serverErrorResponse(w, r, err)
 				return
 			}
 
 			ch <- url
+			close(ch)
 		})
+		url = <-ch
+		defer file.Close()
+	} else {
+		url = ""
 	}
-	defer file.Close()
 
 	orderNumber, err := strconv.Atoi(r.FormValue("order_number"))
 	if err != nil {
@@ -85,7 +90,7 @@ func (app *application) createProductCategoryHandler(w http.ResponseWriter, r *h
 	}
 
 	productCategory := &data.ProductCategory{
-		Image:       <-ch,
+		Image:       url,
 		Name:        r.FormValue("name"),
 		Slug:        app.slugify(r.FormValue("name")),
 		IsActive:    r.FormValue("is_active") == "true",
@@ -145,13 +150,13 @@ func (app *application) updateProductCategoryHandler(w http.ResponseWriter, r *h
 			}
 
 			ch <- url
+			close(ch)
 		})
 		imgURL = <-ch
+		defer file.Close()
 	} else {
-		fmt.Printf("File is nil")
 		imgURL = productCategory.Image
 	}
-	// defer file.Close()
 
 	orderNumber, err := strconv.Atoi(r.FormValue("order_number"))
 	if err != nil {
