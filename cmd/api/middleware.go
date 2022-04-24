@@ -161,6 +161,29 @@ func (app *application) requireAuthenticatedUser(next http.HandlerFunc) http.Han
 			return
 		}
 
+		if user.Role != "user" {
+			app.notPermittedResponse(w, r)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) requireAuthenticatedAdmin(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := app.contextGetUser(r)
+
+		if user.IsAnonymous() {
+			app.authenticationRequiredResponse(w, r)
+			return
+		}
+
+		if user.Role != "admin" {
+			app.notPermittedResponse(w, r)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }

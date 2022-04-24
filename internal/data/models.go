@@ -11,6 +11,7 @@ var (
 	ErrRecordNotFound = errors.New("record not found")
 	ErrEditConflict   = errors.New("edit conflict")
 	ErrDuplicateSlug  = errors.New("duplicate slug")
+	ErrInvalidEnum    = errors.New("invalid enum value")
 )
 
 type Models struct {

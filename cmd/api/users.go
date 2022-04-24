@@ -263,5 +263,193 @@ func (app *application) updateUserPasswordHandler(w http.ResponseWriter, r *http
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
+}
 
+func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
+	err := app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), user, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) updateUserNameHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Name string `json:"name"`
+	}
+
+	user := app.contextGetUser(r)
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	v := validator.New()
+
+	data.ValidateName(v, input.Name)
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	// Set the new name for the user.
+	user.Name = input.Name
+
+	// Save the updated user record in our database, checking for any edit conflicts as normal.
+	err = app.models.Users.UpdateName(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// Send the user a confirmation message.
+	env := envelope{"message": "user name has been successfully updated"}
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), env, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) updateUserGenderHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Gender string `json:"gender"`
+	}
+
+	user := app.contextGetUser(r)
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	v := validator.New()
+
+	data.ValidateGender(v, input.Gender)
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	// Set the new name for the user.
+	user.Gender = input.Gender
+
+	// Save the updated user record in our database, checking for any edit conflicts as normal.
+	err = app.models.Users.UpdateGender(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// Send the user a confirmation message.
+	env := envelope{"message": "user gender has been successfully updated"}
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), env, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) updateUserDateOfBirthHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		DateOfBirth time.Time `json:"date_of_birth"`
+	}
+
+	user := app.contextGetUser(r)
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	v := validator.New()
+
+	data.ValidateDateOfBirth(v, input.DateOfBirth)
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	// Set the new name for the user.
+	user.DateOfBirth = input.DateOfBirth
+
+	// Save the updated user record in our database, checking for any edit conflicts as normal.
+	err = app.models.Users.UpdateDateOfBirth(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// Send the user a confirmation message.
+	env := envelope{"message": "user dob has been successfully updated"}
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), env, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) updateUserPhoneNumberHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		PhoneNumber string `json:"phone_number"`
+	}
+
+	user := app.contextGetUser(r)
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	v := validator.New()
+
+	data.ValidatePhoneNumber(v, input.PhoneNumber)
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	// Set the new name for the user.
+	user.PhoneNumber = input.PhoneNumber
+
+	// Save the updated user record in our database, checking for any edit conflicts as normal.
+	err = app.models.Users.UpdatePhoneNumber(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// Send the user a confirmation message.
+	env := envelope{"message": "user phone number has been successfully updated"}
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), env, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }

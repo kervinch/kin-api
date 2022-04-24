@@ -1,0 +1,4 @@
+ALTER TABLE users DROP COLUMN IF EXISTS gender;
+ALTER TABLE users DROP COLUMN IF EXISTS date_of_birth;
+ALTER TABLE users DROP COLUMN IF EXISTS phone_number;
+DROP TYPE gender_enum;

@@ -23,6 +23,12 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/api/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodGet, "/api/users/activated", app.activateUserHandler)
 	router.HandlerFunc(http.MethodPut, "/api/users/password", app.updateUserPasswordHandler)
+	router.HandlerFunc(http.MethodGet, "/api/users", app.requireAuthenticatedUser(app.getUserHandler))
+
+	router.HandlerFunc(http.MethodPut, "/api/users/update/name", app.requireAuthenticatedUser(app.updateUserNameHandler))
+	router.HandlerFunc(http.MethodPut, "/api/users/update/gender", app.requireAuthenticatedUser(app.updateUserGenderHandler))
+	router.HandlerFunc(http.MethodPut, "/api/users/update/date-of-birth", app.requireAuthenticatedUser(app.updateUserDateOfBirthHandler))
+	router.HandlerFunc(http.MethodPut, "/api/users/update/phone-number", app.requireAuthenticatedUser(app.updateUserPhoneNumberHandler))
 
 	// Tokens
 	router.HandlerFunc(http.MethodPost, "/api/tokens/authentication", app.createAuthenticationTokenHandler)
@@ -90,10 +96,10 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodDelete, "/cms/brands/:id", app.deleteBrandHandler)
 
 	// Movies
-	router.HandlerFunc(http.MethodGet, "/cms/movies", app.requireActivatedUser(app.listMoviesHandler))
+	router.HandlerFunc(http.MethodGet, "/cms/movies", app.requireAuthenticatedAdmin(app.listMoviesHandler))
 	router.HandlerFunc(http.MethodPost, "/cms/movies", app.requirePermission("movies:write", app.createMovieHandler))
-	router.HandlerFunc(http.MethodGet, "/cms/movies/:id", app.requireActivatedUser(app.showMovieHandler))
-	router.HandlerFunc(http.MethodPut, "/cms/movies/:id", app.requireActivatedUser(app.fullUpdateMovieHandler))
+	router.HandlerFunc(http.MethodGet, "/cms/movies/:id", app.requireAuthenticatedAdmin(app.showMovieHandler))
+	router.HandlerFunc(http.MethodPut, "/cms/movies/:id", app.requireAuthenticatedAdmin(app.fullUpdateMovieHandler))
 	router.HandlerFunc(http.MethodPatch, "/cms/movies/:id", app.requirePermission("movies:write", app.updateMovieHandler))
 	router.HandlerFunc(http.MethodDelete, "/cms/movies/:id", app.requirePermission("movies:write", app.deleteMovieHandler))
 
