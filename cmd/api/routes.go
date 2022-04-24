@@ -30,6 +30,12 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPut, "/api/users/update/date-of-birth", app.requireAuthenticatedUser(app.updateUserDateOfBirthHandler))
 	router.HandlerFunc(http.MethodPut, "/api/users/update/phone-number", app.requireAuthenticatedUser(app.updateUserPhoneNumberHandler))
 
+	router.HandlerFunc(http.MethodGet, "/api/user-addresses", app.requireAuthenticatedUser(app.getUserAddressesHandler))
+	router.HandlerFunc(http.MethodPost, "/api/user-addresses", app.requireAuthenticatedUser(app.createUserAddressHandler))
+	router.HandlerFunc(http.MethodPut, "/api/user-addresses/:id", app.requireAuthenticatedUser(app.updateUserAddressHandler))
+	router.HandlerFunc(http.MethodPut, "/api/user-addresses/:id/is-main", app.requireAuthenticatedUser(app.updateMainUserAddressHandler))
+	router.HandlerFunc(http.MethodDelete, "/api/user-addresses/:id", app.requireAuthenticatedUser(app.deleteUserAddressHandler))
+
 	// Tokens
 	router.HandlerFunc(http.MethodPost, "/api/tokens/authentication", app.createAuthenticationTokenHandler)
 	router.HandlerFunc(http.MethodPost, "/api/tokens/activation", app.createActivationTokenHandler)

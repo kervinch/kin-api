@@ -28,6 +28,7 @@ type Gorm struct {
 	Blogs             BlogModel
 	BlogCategories    BlogCategoryModel
 	ProductCategories ProductCategoryModel
+	UserAddresses     UserAddressModel
 }
 
 func NewModels(db *sql.DB) Models {
@@ -47,6 +48,7 @@ func GormModels(db *gorm.DB) Gorm {
 		Blogs:             BlogModel{DB: db},
 		BlogCategories:    BlogCategoryModel{DB: db},
 		ProductCategories: ProductCategoryModel{DB: db},
+		UserAddresses:     UserAddressModel{DB: db},
 	}
 }
 

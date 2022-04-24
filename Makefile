@@ -40,6 +40,12 @@ db/migrations/up: confirm
 	@echo 'Running up migrations...'
 	migrate -path=./migrations -database ${DB_DSN} up
 
+## db/migrations/up: apply all up database migrations
+.PHONY: db/migrations/down/1
+db/migrations/down/1: confirm
+	@echo 'Running down migrations by 1...'
+	migrate -path=./migrations -database ${DB_DSN} down 1
+
 # ==================================================================================== # 
 # QUALITY CONTROL
 # ==================================================================================== #
