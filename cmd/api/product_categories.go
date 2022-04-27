@@ -63,12 +63,12 @@ func (app *application) showProductCategoryHandler(w http.ResponseWriter, r *htt
 
 func (app *application) createProductCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(data.DefaultMaxMemory)
-	file, handler, err := r.FormFile("image")
-	var url string
+	file, handler, err := r.FormFile("product_category_image")
+	var imageURL string
 	ch := make(chan string)
 	if err == nil {
 		app.background(func() {
-			url, err = app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
+			url, err := app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
 			if err != nil {
 				app.serverErrorResponse(w, r, err)
 				return
@@ -77,10 +77,10 @@ func (app *application) createProductCategoryHandler(w http.ResponseWriter, r *h
 			ch <- url
 			close(ch)
 		})
-		url = <-ch
+		imageURL = <-ch
 		defer file.Close()
 	} else {
-		url = ""
+		imageURL = ""
 	}
 
 	orderNumber, err := strconv.Atoi(r.FormValue("order_number"))
@@ -90,7 +90,7 @@ func (app *application) createProductCategoryHandler(w http.ResponseWriter, r *h
 	}
 
 	productCategory := &data.ProductCategory{
-		Image:       url,
+		ImageURL:    imageURL,
 		Name:        r.FormValue("name"),
 		Slug:        app.slugify(r.FormValue("name")),
 		IsActive:    r.FormValue("is_active") == "true",
@@ -143,10 +143,10 @@ func (app *application) updateProductCategoryHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	var imgURL string
+	var imageURL string
 	ch := make(chan string)
 	r.ParseMultipartForm(data.DefaultMaxMemory)
-	file, handler, err := r.FormFile("image")
+	file, handler, err := r.FormFile("product_category_image")
 	if err == nil && handler.Size > 0 {
 		app.background(func() {
 			url, err := app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
@@ -158,10 +158,10 @@ func (app *application) updateProductCategoryHandler(w http.ResponseWriter, r *h
 			ch <- url
 			close(ch)
 		})
-		imgURL = <-ch
+		imageURL = <-ch
 		defer file.Close()
 	} else {
-		imgURL = productCategory.Image
+		imageURL = productCategory.ImageURL
 	}
 
 	orderNumber, err := strconv.Atoi(r.FormValue("order_number"))
@@ -170,7 +170,7 @@ func (app *application) updateProductCategoryHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	productCategory.Image = imgURL
+	productCategory.ImageURL = imageURL
 	productCategory.Name = r.FormValue("name")
 	productCategory.Slug = app.slugify(r.FormValue("name"))
 	productCategory.IsActive = r.FormValue("is_active") == "true"

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS product_categories (
   id bigserial PRIMARY KEY,
-  image text,
+  image_url text,
   name text NOT NULL,
   slug text UNIQUE NOT NULL,
   order_number integer,

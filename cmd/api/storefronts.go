@@ -69,16 +69,24 @@ func (app *application) createStorefrontHandler(w http.ResponseWriter, r *http.R
 	}
 	defer file.Close()
 
-	url, err := app.s3.Upload(file, s3.STOREFRONT, handler.Filename, handler.Header.Get("Content-Type"))
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
+	var imageURL string
+	ch := make(chan string)
+	app.background(func() {
+		url, err := app.s3.Upload(file, s3.STOREFRONT, handler.Filename, handler.Header.Get("Content-Type"))
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+
+		ch <- url
+		close(ch)
+	})
+	imageURL = <-ch
 
 	storefront := &data.Storefront{
 		Name:        r.FormValue("name"),
 		Description: r.FormValue("description"),
-		ImageURL:    url,
+		ImageURL:    imageURL,
 		Slug:        app.slugify(r.FormValue("name")),
 		IsActive:    r.FormValue("is_active") == "true",
 	}
@@ -123,21 +131,28 @@ func (app *application) updateStorefrontHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	var url string
+	var imageURL string
+	ch := make(chan string)
 	r.ParseMultipartForm(data.DefaultMaxMemory)
 	file, handler, err := r.FormFile("storefront_image")
 	if err == nil && handler.Size > 0 {
-		url, err = app.s3.Upload(file, s3.STOREFRONT, handler.Filename, handler.Header.Get("Content-Type"))
-		if err != nil {
-			app.serverErrorResponse(w, r, err)
-			return
-		}
+		app.background(func() {
+			url, err := app.s3.Upload(file, s3.STOREFRONT, handler.Filename, handler.Header.Get("Content-Type"))
+			if err != nil {
+				app.serverErrorResponse(w, r, err)
+				return
+			}
+
+			ch <- url
+			close(ch)
+		})
+		imageURL = <-ch
 		defer file.Close()
 	} else {
-		url = storefront.ImageURL
+		imageURL = storefront.ImageURL
 	}
 
-	storefront.ImageURL = url
+	storefront.ImageURL = imageURL
 	storefront.Name = r.FormValue("name")
 	storefront.Description = r.FormValue("description")
 	storefront.Slug = app.slugify(r.FormValue("name"))

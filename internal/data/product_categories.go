@@ -11,7 +11,7 @@ import (
 
 type ProductCategory struct {
 	ID          int64     `json:"id"`
-	Image       string    `json:"image"`
+	ImageURL    string    `json:"image_url"`
 	Name        string    `json:"name"`
 	Slug        string    `json:"slug"`
 	OrderNumber int       `json:"order_number"`
@@ -102,7 +102,7 @@ func (m ProductCategoryModel) Update(p *ProductCategory) error {
 		}
 	}
 
-	productCategory.Image = p.Image
+	productCategory.ImageURL = p.ImageURL
 	productCategory.Name = p.Name
 	productCategory.Slug = p.Slug
 	productCategory.IsActive = p.IsActive
