@@ -17,6 +17,7 @@ const (
 	BLOG             = "blogs/"
 	BLOG_CATEGORY    = "blog_categories/"
 	PRODUCT_CATEGORY = "product_categories/"
+	STOREFRONT       = "storefronts/"
 )
 
 type S3 struct {

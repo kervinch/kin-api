@@ -116,6 +116,13 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPut, "/cms/product-categories/:id", app.updateProductCategoryHandler)
 	router.HandlerFunc(http.MethodDelete, "/cms/product-categories/:id", app.deleteProductCategoryHandler)
 
+	// Storefronts
+	router.HandlerFunc(http.MethodGet, "/cms/storefronts", app.listStorefrontsHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/storefronts/:id", app.showStorefrontHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/storefronts", app.createStorefrontHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/storefronts/:id", app.updateStorefrontHandler)
+	router.HandlerFunc(http.MethodDelete, "/cms/storefronts/:id", app.deleteStorefrontHandler)
+
 	// ====================================================================================
 	// Miscellaneous Routes
 	// ====================================================================================
