@@ -30,6 +30,9 @@ type Gorm struct {
 	ProductCategories ProductCategoryModel
 	UserAddresses     UserAddressModel
 	Storefronts       StorefrontModel
+	Products          ProductModel
+	ProductDetails    ProductDetailModel
+	ProductImages     ProductImageModel
 }
 
 func NewModels(db *sql.DB) Models {
@@ -51,11 +54,8 @@ func GormModels(db *gorm.DB) Gorm {
 		ProductCategories: ProductCategoryModel{DB: db},
 		UserAddresses:     UserAddressModel{DB: db},
 		Storefronts:       StorefrontModel{DB: db},
+		Products:          ProductModel{DB: db},
+		ProductDetails:    ProductDetailModel{DB: db},
+		ProductImages:     ProductImageModel{DB: db},
 	}
 }
-
-// func NewMockModels() Models {
-// 	return Models{
-// 		Movies: MockMovieModel{},
-// 	}
-// }

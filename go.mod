@@ -1,6 +1,6 @@
 module github.com/kervinch
 
-go 1.17
+go 1.18
 
 require (
 	github.com/aws/aws-sdk-go v1.43.24
@@ -10,6 +10,7 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.4
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
+	golang.org/x/exp v0.0.0-20220428152302-39d4317da171
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11
 	gorm.io/driver/postgres v1.3.1
 	gorm.io/gorm v1.23.2

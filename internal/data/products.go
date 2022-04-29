@@ -10,22 +10,40 @@ import (
 )
 
 type Product struct {
-	ID          int64     `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	ImageURL    string    `json:"image_url"`
-	Slug        string    `json:"slug"`
-	IsActive    bool      `json:"is_active"`
-	CreatedAt   time.Time `json:"-"`
-	UpdatedAt   time.Time `json:"-"`
+	ID                int64           `json:"id"`
+	ProductCategory   ProductCategory `json:"product_category"`
+	ProductCategoryID int64           `json:"product_category_id"`
+	Brand             Brand           `json:"brand"`
+	BrandID           int64           `json:"brand_id"`
+	Name              string          `json:"name"`
+	Description       string          `json:"description"`
+	Weight            int             `json:"weight"`
+	MinimumOrder      int             `json:"minimum_order"`
+	Storefront        Storefront      `json:"storefront"`
+	StorefrontID      int64           `json:"storefront_id"`
+	PreorderDays      int             `json:"preorder_days"`
+	Condition         string          `json:"condition"`
+	Slug              string          `json:"slug"`
+	InsuranceRequired bool            `json:"insurance_required"`
+	IsActive          bool            `json:"is_active"`
+	CreatedAt         time.Time       `json:"-"`
+	UpdatedAt         time.Time       `json:"-"`
 }
 
-func ValidateProduct(v *validator.Validator, storefront *Storefront) {
-	v.Check(storefront.ImageURL != "", "image_url", "must be provided")
-	v.Check(storefront.Name != "", "name", "must be provided")
-	v.Check(len(storefront.Name) <= 500, "name", "must not be more than 500 bytes long")
-	v.Check(storefront.Description != "", "description", "must be provided")
-	v.Check(len(storefront.Description) <= 500, "description", "must not be more than 500 bytes long")
+func ValidateProduct(v *validator.Validator, product *Product) {
+	v.Check(product.ProductCategoryID != 0, "product_category_id", "must be provided")
+	v.Check(product.ProductCategoryID > 0, "product_category_id", "must be a positive integer")
+	v.Check(product.BrandID != 0, "brand_id", "must be provided")
+	v.Check(product.BrandID > 0, "brand_id", "must be a positive integer")
+	v.Check(product.Name != "", "name", "must be provided")
+	v.Check(len(product.Name) <= 500, "name", "must not be more than 500 bytes long")
+	v.Check(product.Description != "", "description", "must be provided")
+	v.Check(len(product.Description) <= 500, "description", "must not be more than 500 bytes long")
+	v.Check(product.Weight != 0, "weight", "must be provided")
+	v.Check(product.Weight > 0, "weight", "must be a positive integer")
+	v.Check(product.MinimumOrder != 0, "minimum_order", "must be provided")
+	v.Check(product.MinimumOrder > 0, "minimum_order", "must be a positive integer")
+	v.Check(validator.In(product.Condition, "new", "used"), "condition", "must be either new or used")
 }
 
 type ProductModel struct {
@@ -36,36 +54,36 @@ type ProductModel struct {
 // Backoffice Functions
 // ====================================================================================
 
-func (m ProductModel) GetAll(p Pagination) ([]*Storefront, Metadata, error) {
-	var storefronts []*Storefront
+func (m ProductModel) GetAll(p Pagination) ([]*Product, Metadata, error) {
+	var products []*Product
 	var count int64
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Find(&storefronts).Error
+	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Find(&products).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
 
-	err = m.DB.Table("storefronts").Count(&count).Error
+	err = m.DB.Table("products").Count(&count).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
 
 	metadata := calculateMetadata(int(count), p.Page, p.PageSize)
 
-	return storefronts, metadata, nil
+	return products, metadata, nil
 }
 
-func (m ProductModel) Get(id int64) (*Storefront, error) {
+func (m ProductModel) Get(id int64) (*Product, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
 
-	var storefront *Storefront
+	var product *Product
 
-	err := m.DB.First(&storefront, id).Error
+	err := m.DB.First(&product, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -75,19 +93,19 @@ func (m ProductModel) Get(id int64) (*Storefront, error) {
 		}
 	}
 
-	return storefront, nil
+	return product, nil
 }
 
-func (m ProductModel) Insert(storefront *Storefront) error {
-	err := m.DB.Create(&storefront).Error
+func (m ProductModel) Insert(product *Product) error {
+	err := m.DB.Create(&product).Error
 
 	return err
 }
 
-func (m ProductModel) Update(s *Storefront) error {
-	var storefront *Storefront
+func (m ProductModel) Update(p *Product) error {
+	var product *Product
 
-	err := m.DB.First(&storefront, s.ID).Error
+	err := m.DB.First(&product, p.ID).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -97,13 +115,20 @@ func (m ProductModel) Update(s *Storefront) error {
 		}
 	}
 
-	storefront.Name = s.Name
-	storefront.Description = s.Description
-	storefront.ImageURL = s.ImageURL
-	storefront.Slug = s.Slug
-	storefront.IsActive = s.IsActive
+	product.ProductCategoryID = p.ProductCategoryID
+	product.BrandID = p.BrandID
+	product.Name = p.Name
+	product.Description = p.Description
+	product.Weight = p.Weight
+	product.MinimumOrder = p.MinimumOrder
+	product.StorefrontID = p.StorefrontID
+	product.PreorderDays = p.PreorderDays
+	product.Condition = p.Condition
+	product.Slug = p.Slug
+	product.InsuranceRequired = p.InsuranceRequired
+	product.IsActive = p.IsActive
 
-	err = m.DB.Save(&storefront).Error
+	err = m.DB.Save(&product).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -121,7 +146,7 @@ func (m ProductModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	err := m.DB.Delete(&Storefront{}, id).Error
+	err := m.DB.Delete(&Product{}, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):

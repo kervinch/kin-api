@@ -114,6 +114,10 @@ github.com/tomasen/realip
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/pbkdf2
+# golang.org/x/exp v0.0.0-20220428152302-39d4317da171
+## explicit; go 1.18
+golang.org/x/exp/constraints
+golang.org/x/exp/slices
 # golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 ## explicit; go 1.17
 # golang.org/x/text v0.3.7
