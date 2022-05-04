@@ -24,7 +24,6 @@ func (app *application) listStorefrontsHandler(w http.ResponseWriter, r *http.Re
 	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
 
 	storefronts, metadata, err := app.gorm.Storefronts.GetAll(pagination)
-
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

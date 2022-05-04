@@ -62,7 +62,12 @@ func (m UserAddressModel) Get(id int64, user *User) (*UserAddress, error) {
 
 	err := m.DB.WithContext(ctx).Where("id = ? AND user_id = ?", id, user.ID).First(&userAddress).Error
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
 	}
 
 	return userAddress, nil
@@ -150,14 +155,9 @@ func (m UserAddressModel) Delete(id int64, userID int64) error {
 		return ErrRecordNotFound
 	}
 
-	err := m.DB.Where("id = ? AND user_id = ?", id, userID).Delete(&UserAddress{}).Error
-	if err != nil {
-		switch {
-		case errors.Is(err, gorm.ErrRecordNotFound):
-			return ErrRecordNotFound
-		default:
-			return err
-		}
+	ra := m.DB.Where("id = ? AND user_id = ?", id, userID).Delete(&UserAddress{}).RowsAffected
+	if ra < 1 {
+		return ErrRecordNotFound
 	}
 
 	return nil

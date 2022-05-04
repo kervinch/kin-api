@@ -231,14 +231,9 @@ func (m ProductModel) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Delete(&Product{}, id).Error
-	if err != nil {
-		switch {
-		case errors.Is(err, gorm.ErrRecordNotFound):
-			return ErrEditConflict
-		default:
-			return err
-		}
+	ra := m.DB.WithContext(ctx).Delete(&Product{}, id).RowsAffected
+	if ra < 1 {
+		return ErrRecordNotFound
 	}
 
 	return nil
@@ -252,14 +247,9 @@ func (m ProductModel) DeleteWithTx(id int64, tx *gorm.DB) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := tx.WithContext(ctx).Delete(&Product{}, id).Error
-	if err != nil {
-		switch {
-		case errors.Is(err, gorm.ErrRecordNotFound):
-			return ErrEditConflict
-		default:
-			return err
-		}
+	ra := tx.WithContext(ctx).Delete(&Product{}, id).RowsAffected
+	if ra < 1 {
+		return ErrRecordNotFound
 	}
 
 	return nil

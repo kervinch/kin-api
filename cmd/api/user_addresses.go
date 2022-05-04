@@ -16,7 +16,6 @@ func (app *application) getUserAddressesHandler(w http.ResponseWriter, r *http.R
 	user := app.contextGetUser(r)
 
 	userAddresses, err := app.gorm.UserAddresses.GetAPI(user)
-
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -194,6 +193,17 @@ func (app *application) deleteUserAddressHandler(w http.ResponseWriter, r *http.
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
+		return
+	}
+
+	_, err = app.gorm.UserAddresses.Get(id, user)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

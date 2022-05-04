@@ -146,14 +146,9 @@ func (m BlogModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	err := m.DB.Delete(&Blog{}, id).Error
-	if err != nil {
-		switch {
-		case errors.Is(err, gorm.ErrRecordNotFound):
-			return ErrEditConflict
-		default:
-			return err
-		}
+	ra := m.DB.Delete(&Blog{}, id).RowsAffected
+	if ra < 1 {
+		return ErrRecordNotFound
 	}
 
 	return nil

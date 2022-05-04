@@ -56,6 +56,17 @@ func (app *application) routes() http.Handler {
 	// Brands
 	router.HandlerFunc(http.MethodGet, "/api/brands", app.getBrandsHandler)
 
+	// Carts
+	router.HandlerFunc(http.MethodGet, "/api/carts", app.requireAuthenticatedUser(app.getCartsHandler))
+	router.HandlerFunc(http.MethodPost, "/api/carts", app.requireAuthenticatedUser(app.createCartHandler))
+	router.HandlerFunc(http.MethodPut, "/api/carts/:id", app.requireAuthenticatedUser(app.updateCartHandler))
+	router.HandlerFunc(http.MethodDelete, "/api/carts/:id", app.requireAuthenticatedUser(app.deleteCartHandler))
+
+	// Favorites
+	router.HandlerFunc(http.MethodGet, "/api/favorites", app.requireAuthenticatedUser(app.getFavoritesHandler))
+	router.HandlerFunc(http.MethodPost, "/api/favorites", app.requireAuthenticatedUser(app.createFavoriteHandler))
+	router.HandlerFunc(http.MethodDelete, "/api/favorites/:id", app.requireAuthenticatedUser(app.deleteFavoriteHandler))
+
 	// Product Categories
 	router.HandlerFunc(http.MethodGet, "/api/product-categories", app.getProductCategoriesHandler)
 	router.HandlerFunc(http.MethodGet, "/api/product-categories/:slug", app.getProductCategoriesBySlugHandler)

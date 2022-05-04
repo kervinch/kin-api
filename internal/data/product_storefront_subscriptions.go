@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/kervinch/internal/validator"
@@ -165,14 +164,9 @@ func (m ProductStorefrontSubscriptionModel) Delete(productID int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Where("product_id = ?", productID).Delete(&ProductStorefrontSubscriptionModel{}).Error
-	if err != nil {
-		switch {
-		case errors.Is(err, gorm.ErrRecordNotFound):
-			return ErrEditConflict
-		default:
-			return err
-		}
+	ra := m.DB.WithContext(ctx).Where("product_id = ?", productID).Delete(&ProductStorefrontSubscriptionModel{}).RowsAffected
+	if ra < 1 {
+		return ErrRecordNotFound
 	}
 
 	return nil
@@ -186,14 +180,9 @@ func (m ProductStorefrontSubscriptionModel) DeleteWithTx(productID int64, tx *go
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := tx.WithContext(ctx).Where("product_id = ?", productID).Delete(&ProductStorefrontSubscription{}).Error
-	if err != nil {
-		switch {
-		case errors.Is(err, gorm.ErrRecordNotFound):
-			return ErrEditConflict
-		default:
-			return err
-		}
+	ra := tx.WithContext(ctx).Where("product_id = ?", productID).Delete(&ProductStorefrontSubscription{}).RowsAffected
+	if ra < 1 {
+		return ErrRecordNotFound
 	}
 
 	return nil

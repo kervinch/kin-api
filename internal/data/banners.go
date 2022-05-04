@@ -342,14 +342,9 @@ func (g GormBannerModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	err := g.DB.Delete(&Banner{}, id).Error
-	if err != nil {
-		switch {
-		case errors.Is(err, gorm.ErrRecordNotFound):
-			return ErrEditConflict
-		default:
-			return err
-		}
+	ra := g.DB.Delete(&Banner{}, id).RowsAffected
+	if ra < 1 {
+		return ErrRecordNotFound
 	}
 
 	return nil

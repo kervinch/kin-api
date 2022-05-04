@@ -25,7 +25,6 @@ func (app *application) listBrandsHandler(w http.ResponseWriter, r *http.Request
 	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
 
 	brands, metadata, err := app.gorm.Brands.GetAll(pagination)
-
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

@@ -110,13 +110,6 @@ func (app *application) updateProductImageHandler(w http.ResponseWriter, r *http
 		imageURL = productImage.ImageURL
 	}
 
-	productDetailID, err := strconv.Atoi(r.FormValue("product_detail_id"))
-	if err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
-	productImage.ProductDetailID = int64(productDetailID)
 	productImage.ImageURL = imageURL
 	productImage.IsMain = r.FormValue("is_main") == "true"
 

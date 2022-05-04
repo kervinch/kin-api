@@ -25,7 +25,6 @@ func (app *application) listBlogCategoriesHandler(w http.ResponseWriter, r *http
 	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
 
 	blogCategories, metadata, err := app.gorm.BlogCategories.GetAll(pagination)
-
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

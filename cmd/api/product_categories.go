@@ -25,7 +25,6 @@ func (app *application) listProductCategoriesHandler(w http.ResponseWriter, r *h
 	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
 
 	productCategories, metadata, err := app.gorm.ProductCategories.GetAll(pagination)
-
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
