@@ -63,6 +63,7 @@ func (app *application) showBrandHandler(w http.ResponseWriter, r *http.Request)
 
 func (app *application) createBrandHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(data.DefaultMaxMemory)
+
 	file, handler, err := r.FormFile("brand_image")
 	if err != nil {
 		app.fileNotFoundResponse(w, r, "brand_image")
@@ -131,6 +132,7 @@ func (app *application) updateBrandHandler(w http.ResponseWriter, r *http.Reques
 
 	var url string
 	r.ParseMultipartForm(data.DefaultMaxMemory)
+
 	file, handler, err := r.FormFile("brand_image")
 	if err == nil && handler.Size > 0 {
 		url, err = app.s3.Upload(file, s3.BRAND, handler.Filename, handler.Header.Get("Content-Type"))

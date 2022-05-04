@@ -10,17 +10,18 @@ import (
 )
 
 type ProductDetail struct {
-	ID        int64     `json:"id"`
-	Product   Product   `json:"product"`
-	ProductID int64     `json:"product_id"`
-	Color     string    `json:"color"`
-	Size      string    `json:"size"`
-	Price     int64     `json:"price"`
-	SKU       string    `json:"sku"`
-	Stock     int       `json:"stock"`
-	IsActive  bool      `json:"is_active"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	ID           int64          `json:"id"`
+	Product      Product        `json:"-"`
+	ProductID    int64          `json:"product_id"`
+	Color        string         `json:"color"`
+	Size         string         `json:"size"`
+	Price        int64          `json:"price"`
+	SKU          string         `json:"sku"`
+	Stock        int            `json:"stock"`
+	IsActive     bool           `json:"is_active"`
+	ProductImage []ProductImage `json:"product_images"`
+	CreatedAt    time.Time      `json:"-"`
+	UpdatedAt    time.Time      `json:"-"`
 }
 
 func ValidateProductDetail(v *validator.Validator, productDetail *ProductDetail) {
@@ -45,7 +46,7 @@ func (m ProductDetailModel) GetAll(p Pagination) ([]*ProductDetail, Metadata, er
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Find(&productDetails).Error
+	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Preload("ProductImage").Find(&productDetails).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
@@ -67,7 +68,10 @@ func (m ProductDetailModel) Get(id int64) (*ProductDetail, error) {
 
 	var productDetail *ProductDetail
 
-	err := m.DB.First(&productDetail, id).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Preload("ProductImage").First(&productDetail, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -80,16 +84,35 @@ func (m ProductDetailModel) Get(id int64) (*ProductDetail, error) {
 	return productDetail, nil
 }
 
-func (m ProductDetailModel) Insert(productDetail *ProductDetail) error {
-	err := m.DB.Create(&productDetail).Error
+func (m ProductDetailModel) Insert(productDetail *ProductDetail) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-	return err
+	err := m.DB.WithContext(ctx).Create(&productDetail).Error
+
+	productDetailID := productDetail.ID
+
+	return productDetailID, err
+}
+
+func (m ProductDetailModel) InsertWithTx(productDetail *ProductDetail, tx *gorm.DB) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := tx.WithContext(ctx).Create(&productDetail).Error
+
+	productDetailID := productDetail.ID
+
+	return productDetailID, err
 }
 
 func (m ProductDetailModel) Update(p *ProductDetail) error {
 	var productDetail *ProductDetail
 
-	err := m.DB.First(&productDetail, p.ID).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).First(&productDetail, p.ID).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -107,7 +130,44 @@ func (m ProductDetailModel) Update(p *ProductDetail) error {
 	productDetail.Stock = p.Stock
 	productDetail.IsActive = p.IsActive
 
-	err = m.DB.Save(&productDetail).Error
+	err = m.DB.WithContext(ctx).Save(&productDetail).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m ProductDetailModel) UpdateWithTx(p *ProductDetail, tx *gorm.DB) error {
+	var productDetail *ProductDetail
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).First(&productDetail, p.ID).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+
+	productDetail.ProductID = p.ProductID
+	productDetail.Color = p.Color
+	productDetail.Size = p.Size
+	productDetail.Price = p.Price
+	productDetail.SKU = p.SKU
+	productDetail.Stock = p.Stock
+	productDetail.IsActive = p.IsActive
+
+	err = tx.WithContext(ctx).Save(&productDetail).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -125,7 +185,31 @@ func (m ProductDetailModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	err := m.DB.Delete(&ProductDetail{}, id).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Delete(&ProductDetail{}, id).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m ProductDetailModel) DeleteWithTx(id int64, tx *gorm.DB) error {
+	if id < 1 {
+		return ErrRecordNotFound
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := tx.WithContext(ctx).Delete(&ProductDetail{}, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):

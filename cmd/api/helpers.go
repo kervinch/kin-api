@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -240,21 +239,24 @@ func (app *application) Paginate(w http.ResponseWriter, r *http.Request) func(db
 	}
 }
 
-func (app *application) GetFileContentType(file io.Reader) (string, error) {
-	bytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		fmt.Println("Error reading the file...")
-		return "", err
-	}
-
-	// Use the net/http package's handy DectectContentType function. Always returns a valid
-	// content-type by returning "application/octet-stream" if no others seemed to match.
-	contentType := http.DetectContentType(bytes)
-
-	return contentType, nil
-}
-
 func (app *application) slugify(text string) string {
 	slugged := slug.Make(text)
 	return slugged
+}
+
+func (app *application) split(text string) ([]int64, error) {
+	str := strings.Split(text, ",")
+	slc := make([]int64, len(str))
+	var value int64
+
+	for i := range slc {
+		tmp, err := strconv.Atoi(str[i])
+		if err != nil {
+			return []int64{}, err
+		}
+		value = int64(tmp)
+		slc[i] = value
+	}
+
+	return slc, nil
 }

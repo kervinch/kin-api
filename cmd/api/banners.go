@@ -266,6 +266,7 @@ func (app *application) gormShowBannerHandler(w http.ResponseWriter, r *http.Req
 
 func (app *application) gormCreateBannerHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(data.DefaultMaxMemory)
+
 	file, handler, err := r.FormFile("banner_image")
 	if err != nil {
 		app.fileNotFoundResponse(w, r, "banner_image")
@@ -329,6 +330,7 @@ func (app *application) gormFullUpdateBannerHandler(w http.ResponseWriter, r *ht
 
 	var url string
 	r.ParseMultipartForm(data.DefaultMaxMemory)
+
 	file, handler, err := r.FormFile("banner_image")
 	if err == nil && handler.Size > 0 {
 		url, err = app.s3.Upload(file, s3.BANNER, handler.Filename, handler.Header.Get("Content-Type"))

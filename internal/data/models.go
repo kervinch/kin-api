@@ -12,7 +12,13 @@ var (
 	ErrEditConflict   = errors.New("edit conflict")
 	ErrDuplicateSlug  = errors.New("duplicate slug")
 	ErrInvalidEnum    = errors.New("invalid enum value")
+	ErrBadRequest     = errors.New("bad request")
+	ErrImageFormat    = errors.New("unknown image format")
 )
+
+type TransactionModel struct {
+	DB *gorm.DB
+}
 
 type Models struct {
 	Movies      MovieModel
@@ -23,16 +29,21 @@ type Models struct {
 }
 
 type Gorm struct {
-	Banners           GormBannerModel
-	Brands            BrandModel
-	Blogs             BlogModel
-	BlogCategories    BlogCategoryModel
-	ProductCategories ProductCategoryModel
-	UserAddresses     UserAddressModel
-	Storefronts       StorefrontModel
-	Products          ProductModel
-	ProductDetails    ProductDetailModel
-	ProductImages     ProductImageModel
+	Transaction                    TransactionModel
+	Banners                        GormBannerModel
+	Brands                         BrandModel
+	Blogs                          BlogModel
+	BlogCategories                 BlogCategoryModel
+	Carts                          CartModel
+	Favorites                      FavoriteModel
+	Products                       ProductModel
+	ProductCategories              ProductCategoryModel
+	ProductDetails                 ProductDetailModel
+	ProductImages                  ProductImageModel
+	ProductVideos                  ProductVideoModel
+	ProductStorefrontSubscriptions ProductStorefrontSubscriptionModel
+	Storefronts                    StorefrontModel
+	UserAddresses                  UserAddressModel
 }
 
 func NewModels(db *sql.DB) Models {
@@ -47,15 +58,20 @@ func NewModels(db *sql.DB) Models {
 
 func GormModels(db *gorm.DB) Gorm {
 	return Gorm{
-		Banners:           GormBannerModel{DB: db},
-		Brands:            BrandModel{DB: db},
-		Blogs:             BlogModel{DB: db},
-		BlogCategories:    BlogCategoryModel{DB: db},
-		ProductCategories: ProductCategoryModel{DB: db},
-		UserAddresses:     UserAddressModel{DB: db},
-		Storefronts:       StorefrontModel{DB: db},
-		Products:          ProductModel{DB: db},
-		ProductDetails:    ProductDetailModel{DB: db},
-		ProductImages:     ProductImageModel{DB: db},
+		Transaction:                    TransactionModel{DB: db},
+		Banners:                        GormBannerModel{DB: db},
+		Brands:                         BrandModel{DB: db},
+		Blogs:                          BlogModel{DB: db},
+		BlogCategories:                 BlogCategoryModel{DB: db},
+		Carts:                          CartModel{DB: db},
+		Favorites:                      FavoriteModel{DB: db},
+		Products:                       ProductModel{DB: db},
+		ProductCategories:              ProductCategoryModel{DB: db},
+		ProductDetails:                 ProductDetailModel{DB: db},
+		ProductImages:                  ProductImageModel{DB: db},
+		ProductVideos:                  ProductVideoModel{DB: db},
+		ProductStorefrontSubscriptions: ProductStorefrontSubscriptionModel{DB: db},
+		Storefronts:                    StorefrontModel{DB: db},
+		UserAddresses:                  UserAddressModel{DB: db},
 	}
 }

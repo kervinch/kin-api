@@ -64,6 +64,7 @@ func (app *application) showBlogHandler(w http.ResponseWriter, r *http.Request) 
 
 func (app *application) createBlogHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(data.DefaultMaxMemory)
+
 	file, handler, err := r.FormFile("thumbnail")
 	if err != nil {
 		app.fileNotFoundResponse(w, r, "thumbnail")
@@ -147,6 +148,7 @@ func (app *application) updateBlogHandler(w http.ResponseWriter, r *http.Request
 
 	var url string
 	r.ParseMultipartForm(data.DefaultMaxMemory)
+
 	file, handler, err := r.FormFile("thumbnail")
 	if err == nil && handler.Size > 0 {
 		url, err = app.s3.Upload(file, s3.BLOG, handler.Filename, handler.Header.Get("Content-Type"))

@@ -62,6 +62,7 @@ func (app *application) showStorefrontHandler(w http.ResponseWriter, r *http.Req
 
 func (app *application) createStorefrontHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(data.DefaultMaxMemory)
+
 	file, handler, err := r.FormFile("storefront_image")
 	if err != nil {
 		app.fileNotFoundResponse(w, r, "storefront_image")
@@ -71,6 +72,7 @@ func (app *application) createStorefrontHandler(w http.ResponseWriter, r *http.R
 
 	var imageURL string
 	ch := make(chan string)
+
 	app.background(func() {
 		url, err := app.s3.Upload(file, s3.STOREFRONT, handler.Filename, handler.Header.Get("Content-Type"))
 		if err != nil {
@@ -134,6 +136,7 @@ func (app *application) updateStorefrontHandler(w http.ResponseWriter, r *http.R
 	var imageURL string
 	ch := make(chan string)
 	r.ParseMultipartForm(data.DefaultMaxMemory)
+
 	file, handler, err := r.FormFile("storefront_image")
 	if err == nil && handler.Size > 0 {
 		app.background(func() {

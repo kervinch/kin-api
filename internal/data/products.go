@@ -19,12 +19,12 @@ type Product struct {
 	Description       string          `json:"description"`
 	Weight            int             `json:"weight"`
 	MinimumOrder      int             `json:"minimum_order"`
-	Storefront        Storefront      `json:"storefront"`
-	StorefrontID      int64           `json:"storefront_id"`
 	PreorderDays      int             `json:"preorder_days"`
 	Condition         string          `json:"condition"`
 	Slug              string          `json:"slug"`
 	InsuranceRequired bool            `json:"insurance_required"`
+	ProductDetail     []ProductDetail `json:"product_details"`
+	Storefront        []*Storefront   `json:"storefronts" gorm:"many2many:product_storefront_subscriptions"`
 	IsActive          bool            `json:"is_active"`
 	CreatedAt         time.Time       `json:"-"`
 	UpdatedAt         time.Time       `json:"-"`
@@ -61,7 +61,7 @@ func (m ProductModel) GetAll(p Pagination) ([]*Product, Metadata, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Find(&products).Error
+	err := m.DB.WithContext(ctx).Preload("ProductCategory").Preload("Brand").Preload("ProductDetail.ProductImage").Preload("Storefront").Scopes(Paginate(p)).Find(&products).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
@@ -83,7 +83,10 @@ func (m ProductModel) Get(id int64) (*Product, error) {
 
 	var product *Product
 
-	err := m.DB.First(&product, id).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Preload("ProductCategory").Preload("Brand").Preload("ProductDetail.ProductImage").Preload("Storefront").First(&product, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -96,16 +99,51 @@ func (m ProductModel) Get(id int64) (*Product, error) {
 	return product, nil
 }
 
-func (m ProductModel) Insert(product *Product) error {
-	err := m.DB.Create(&product).Error
+func (m ProductModel) Insert(product *Product) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-	return err
+	err := m.DB.WithContext(ctx).Create(&product).Error
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "products_slug_key"`:
+			return 0, ErrDuplicateSlug
+		default:
+			return 0, err
+		}
+	}
+
+	productID := product.ID
+
+	return productID, err
+}
+
+func (m ProductModel) InsertWithTx(product *Product, tx *gorm.DB) (int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := tx.WithContext(ctx).Create(&product).Error
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "products_slug_key"`:
+			return 0, ErrDuplicateSlug
+		default:
+			return 0, err
+		}
+	}
+
+	productID := product.ID
+
+	return productID, err
 }
 
 func (m ProductModel) Update(p *Product) error {
 	var product *Product
 
-	err := m.DB.First(&product, p.ID).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).First(&product, p.ID).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -121,18 +159,62 @@ func (m ProductModel) Update(p *Product) error {
 	product.Description = p.Description
 	product.Weight = p.Weight
 	product.MinimumOrder = p.MinimumOrder
-	product.StorefrontID = p.StorefrontID
 	product.PreorderDays = p.PreorderDays
 	product.Condition = p.Condition
 	product.Slug = p.Slug
 	product.InsuranceRequired = p.InsuranceRequired
 	product.IsActive = p.IsActive
 
-	err = m.DB.Save(&product).Error
+	err = m.DB.WithContext(ctx).Save(&product).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return ErrEditConflict
+		case err.Error() == `pq: duplicate key value violates unique constraint "products_slug_key"`:
+			return ErrDuplicateSlug
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m ProductModel) UpdateWithTx(p *Product, tx *gorm.DB) error {
+	var product *Product
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).First(&product, p.ID).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+
+	product.ProductCategoryID = p.ProductCategoryID
+	product.BrandID = p.BrandID
+	product.Name = p.Name
+	product.Description = p.Description
+	product.Weight = p.Weight
+	product.MinimumOrder = p.MinimumOrder
+	product.PreorderDays = p.PreorderDays
+	product.Condition = p.Condition
+	product.Slug = p.Slug
+	product.InsuranceRequired = p.InsuranceRequired
+	product.IsActive = p.IsActive
+
+	err = tx.WithContext(ctx).Save(&product).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrEditConflict
+		case err.Error() == `pq: duplicate key value violates unique constraint "products_slug_key"`:
+			return ErrDuplicateSlug
 		default:
 			return err
 		}
@@ -146,7 +228,31 @@ func (m ProductModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	err := m.DB.Delete(&Product{}, id).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Delete(&Product{}, id).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m ProductModel) DeleteWithTx(id int64, tx *gorm.DB) error {
+	if id < 1 {
+		return ErrRecordNotFound
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := tx.WithContext(ctx).Delete(&Product{}, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):

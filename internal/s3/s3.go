@@ -3,10 +3,13 @@ package s3
 import (
 	"fmt"
 	"mime/multipart"
+	"net/http"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/kervinch/internal/data"
 )
 
 const (
@@ -16,6 +19,7 @@ const (
 	BRAND            = "brands/"
 	BLOG             = "blogs/"
 	BLOG_CATEGORY    = "blog_categories/"
+	PRODUCT          = "products/"
 	PRODUCT_CATEGORY = "product_categories/"
 	STOREFRONT       = "storefronts/"
 )
@@ -66,6 +70,26 @@ func (s S3) Upload(file multipart.File, key, filename, contentType string) (stri
 
 	// Create an S3 session.
 	svc := s3.New(sess)
+
+	// Check if file is image
+	buff := make([]byte, 512)
+	_, err = file.Read(buff)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	filetype := http.DetectContentType(buff)
+	switch filetype {
+	case "image/jpeg", "image/jpg":
+	case "image/png":
+	case "image/gif":
+		return "", data.ErrImageFormat
+	case "application/pdf":
+		return "", data.ErrImageFormat
+	default:
+		return "", data.ErrImageFormat
+	}
 
 	// Upload the file to S3
 	_, err = svc.PutObject(&s3.PutObjectInput{

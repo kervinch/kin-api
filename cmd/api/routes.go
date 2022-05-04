@@ -109,12 +109,24 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPatch, "/cms/movies/:id", app.requirePermission("movies:write", app.updateMovieHandler))
 	router.HandlerFunc(http.MethodDelete, "/cms/movies/:id", app.requirePermission("movies:write", app.deleteMovieHandler))
 
+	// Products
+	router.HandlerFunc(http.MethodGet, "/cms/products", app.listProductsHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/products/:id", app.showProductHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/products", app.createProductHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/products/:id", app.updateProductHandler)
+	router.HandlerFunc(http.MethodDelete, "/cms/products/:id", app.deleteProductHandler)
+
 	// Product Categories
 	router.HandlerFunc(http.MethodGet, "/cms/product-categories", app.listProductCategoriesHandler)
 	router.HandlerFunc(http.MethodGet, "/cms/product-categories/:id", app.showProductCategoryHandler)
 	router.HandlerFunc(http.MethodPost, "/cms/product-categories", app.createProductCategoryHandler)
 	router.HandlerFunc(http.MethodPut, "/cms/product-categories/:id", app.updateProductCategoryHandler)
 	router.HandlerFunc(http.MethodDelete, "/cms/product-categories/:id", app.deleteProductCategoryHandler)
+
+	// Product Images
+	router.HandlerFunc(http.MethodPost, "/cms/product-images", app.createProductImageHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/product-images/:id", app.updateProductImageHandler)
+	router.HandlerFunc(http.MethodDelete, "/cms/product-images/:id", app.deleteProductImageHandler)
 
 	// Storefronts
 	router.HandlerFunc(http.MethodGet, "/cms/storefronts", app.listStorefrontsHandler)

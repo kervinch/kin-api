@@ -10,14 +10,15 @@ import (
 )
 
 type Storefront struct {
-	ID          int64     `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	ImageURL    string    `json:"image_url"`
-	Slug        string    `json:"slug"`
-	IsActive    bool      `json:"is_active"`
-	CreatedAt   time.Time `json:"-"`
-	UpdatedAt   time.Time `json:"-"`
+	ID          int64      `json:"id"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	ImageURL    string     `json:"image_url"`
+	Slug        string     `json:"slug"`
+	Product     []*Product `gorm:"many2many:product_storefront_subscriptions"`
+	IsActive    bool       `json:"is_active"`
+	CreatedAt   time.Time  `json:"-"`
+	UpdatedAt   time.Time  `json:"-"`
 }
 
 func ValidateStorefront(v *validator.Validator, storefront *Storefront) {

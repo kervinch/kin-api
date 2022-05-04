@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS products (
   description text NOT NULL,
   weight integer NOT NULL,
   minimum_order integer NOT NULL,
-  storefront_id bigint REFERENCES storefronts ON DELETE CASCADE,
   preorder_days integer NOT NULL DEFAULT 0,
   condition condition_enum NOT NULL DEFAULT 'new',
   slug text UNIQUE NOT NULL,

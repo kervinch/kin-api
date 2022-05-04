@@ -63,9 +63,11 @@ func (app *application) showProductCategoryHandler(w http.ResponseWriter, r *htt
 
 func (app *application) createProductCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(data.DefaultMaxMemory)
-	file, handler, err := r.FormFile("product_category_image")
+
 	var imageURL string
 	ch := make(chan string)
+
+	file, handler, err := r.FormFile("product_category_image")
 	if err == nil {
 		app.background(func() {
 			url, err := app.s3.Upload(file, s3.PRODUCT_CATEGORY, handler.Filename, handler.Header.Get("Content-Type"))
@@ -143,9 +145,11 @@ func (app *application) updateProductCategoryHandler(w http.ResponseWriter, r *h
 		return
 	}
 
+	r.ParseMultipartForm(data.DefaultMaxMemory)
+
 	var imageURL string
 	ch := make(chan string)
-	r.ParseMultipartForm(data.DefaultMaxMemory)
+
 	file, handler, err := r.FormFile("product_category_image")
 	if err == nil && handler.Size > 0 {
 		app.background(func() {
