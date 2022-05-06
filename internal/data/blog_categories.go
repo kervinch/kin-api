@@ -63,9 +63,12 @@ func (m BlogCategoryModel) Get(id int64) (*BlogCategory, error) {
 		return nil, ErrRecordNotFound
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var blogCategory *BlogCategory
 
-	err := m.DB.First(&blogCategory, id).Error
+	err := m.DB.WithContext(ctx).First(&blogCategory, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -79,7 +82,10 @@ func (m BlogCategoryModel) Get(id int64) (*BlogCategory, error) {
 }
 
 func (m BlogCategoryModel) Insert(blogCategory *BlogCategory) error {
-	err := m.DB.Create(&blogCategory).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Create(&blogCategory).Error
 	if err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "blog_categories_slug_key"`:
@@ -93,9 +99,12 @@ func (m BlogCategoryModel) Insert(blogCategory *BlogCategory) error {
 }
 
 func (m BlogCategoryModel) Update(b *BlogCategory) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var blogCategory *BlogCategory
 
-	err := m.DB.First(&blogCategory, b.ID).Error
+	err := m.DB.WithContext(ctx).First(&blogCategory, b.ID).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -112,7 +121,7 @@ func (m BlogCategoryModel) Update(b *BlogCategory) error {
 	blogCategory.Status = b.Status
 	blogCategory.OrderNumber = b.OrderNumber
 
-	err = m.DB.Save(&blogCategory).Error
+	err = m.DB.WithContext(ctx).Save(&blogCategory).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -132,7 +141,10 @@ func (m BlogCategoryModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	err := m.DB.Delete(&BlogCategory{}, id).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Delete(&BlogCategory{}, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -168,9 +180,12 @@ func (m BlogCategoryModel) GetBySlug(slug string) (*BlogCategory, error) {
 		return nil, ErrRecordNotFound
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var blogCategory *BlogCategory
 
-	err := m.DB.Where("slug = ?", slug).First(&blogCategory).Error
+	err := m.DB.WithContext(ctx).Where("slug = ?", slug).First(&blogCategory).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):

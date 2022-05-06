@@ -122,7 +122,14 @@ func (app *application) updateProductImageHandler(w http.ResponseWriter, r *http
 
 	err = app.gorm.ProductImages.Update(productImage)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

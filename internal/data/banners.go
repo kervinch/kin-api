@@ -284,9 +284,12 @@ func (g GormBannerModel) Get(id int64) (*Banner, error) {
 		return nil, ErrRecordNotFound
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var banner *Banner
 
-	err := g.DB.First(&banner, id).Error
+	err := g.DB.WithContext(ctx).First(&banner, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -300,15 +303,21 @@ func (g GormBannerModel) Get(id int64) (*Banner, error) {
 }
 
 func (g GormBannerModel) Insert(banner *Banner) error {
-	err := g.DB.Create(&banner).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := g.DB.WithContext(ctx).Create(&banner).Error
 
 	return err
 }
 
 func (g GormBannerModel) Update(b *Banner) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var banner *Banner
 
-	err := g.DB.First(&banner, b.ID).Error
+	err := g.DB.WithContext(ctx).First(&banner, b.ID).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -342,7 +351,10 @@ func (g GormBannerModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	ra := g.DB.Delete(&Banner{}, id).RowsAffected
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	ra := g.DB.WithContext(ctx).Delete(&Banner{}, id).RowsAffected
 	if ra < 1 {
 		return ErrRecordNotFound
 	}

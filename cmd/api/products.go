@@ -350,9 +350,13 @@ func (app *application) updateProductHandler(w http.ResponseWriter, r *http.Requ
 	err = app.gorm.Products.UpdateWithTx(product, tx)
 	if err != nil {
 		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
 		case errors.Is(err, data.ErrDuplicateSlug):
 			v.AddError("slug", "an entry with this slug already exists")
 			app.failedValidationResponse(w, r, v.Errors)
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
@@ -362,8 +366,15 @@ func (app *application) updateProductHandler(w http.ResponseWriter, r *http.Requ
 	err = app.gorm.ProductStorefrontSubscriptions.UpdateWithTx(product.ID, storefrontID, tx)
 	if err != nil {
 		tx.Rollback()
-		app.serverErrorResponse(w, r, err)
-		return
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
 	}
 
 	// ====================
@@ -402,8 +413,17 @@ func (app *application) updateProductHandler(w http.ResponseWriter, r *http.Requ
 	err = app.gorm.ProductDetails.UpdateWithTx(productDetail, tx)
 	if err != nil {
 		tx.Rollback()
-		app.serverErrorResponse(w, r, err)
-		return
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			case errors.Is(err, data.ErrEditConflict):
+				app.editConflictResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
 	}
 
 	tx.Commit()
@@ -498,58 +518,133 @@ func (app *application) deleteProductHandler(w http.ResponseWriter, r *http.Requ
 // Business Handlers
 // ====================================================================================
 
-// func (app *application) getBlogsHandler(w http.ResponseWriter, r *http.Request) {
-// 	var pagination data.Pagination
+func (app *application) getProductsHandler(w http.ResponseWriter, r *http.Request) {
+	var pagination data.Pagination
 
-// 	v := validator.New()
-// 	qs := r.URL.Query()
+	v := validator.New()
+	qs := r.URL.Query()
 
-// 	pagination.Page = app.readInt(qs, "page", 1, v)
-// 	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
+	pagination.Page = app.readInt(qs, "page", 1, v)
+	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
 
-// 	blogs, metadata, err := app.gorm.Blogs.GetAPI(pagination)
+	products, metadata, err := app.gorm.Products.GetAPI(pagination)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
-// 	if err != nil {
-// 		app.serverErrorResponse(w, r, err)
-// 		return
-// 	}
+	err = app.writeJSONWithMeta(w, http.StatusOK, http.StatusText(http.StatusOK), products, nil, metadata)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
 
-// 	err = app.writeJSONWithMeta(w, http.StatusOK, http.StatusText(http.StatusOK), blogs, nil, metadata)
-// 	if err != nil {
-// 		app.serverErrorResponse(w, r, err)
-// 	}
-// }
+func (app *application) getProductsLatestHandler(w http.ResponseWriter, r *http.Request) {
+	products, err := app.gorm.Products.GetLatest()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
-// func (app *application) getBlogBySlugHandler(w http.ResponseWriter, r *http.Request) {
-// 	slug := app.readSlugParam(r)
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), products, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
 
-// 	blog, err := app.gorm.Blogs.GetBySlug(slug)
-// 	if err != nil {
-// 		switch {
-// 		case errors.Is(err, data.ErrRecordNotFound):
-// 			app.notFoundResponse(w, r)
-// 		default:
-// 			app.serverErrorResponse(w, r, err)
-// 		}
-// 		return
-// 	}
+func (app *application) getProductsRecommendationHandler(w http.ResponseWriter, r *http.Request) {
+	products, err := app.gorm.Products.GetRecommendation()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
-// 	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), blog, nil)
-// 	if err != nil {
-// 		app.serverErrorResponse(w, r, err)
-// 	}
-// }
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), products, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
 
-// func (app *application) getBlogsRecommendationHandler(w http.ResponseWriter, r *http.Request) {
-// 	blogs, err := app.gorm.Blogs.GetRecommendations()
+func (app *application) getProductBySlugHandler(w http.ResponseWriter, r *http.Request) {
+	slug := app.readSlugParam(r)
 
-// 	if err != nil {
-// 		app.serverErrorResponse(w, r, err)
-// 		return
-// 	}
+	products, err := app.gorm.Products.GetBySlug(slug)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
 
-// 	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), blogs, nil)
-// 	if err != nil {
-// 		app.serverErrorResponse(w, r, err)
-// 	}
-// }
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), products, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) getProductsByCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	slug := app.readSlugParam(r)
+
+	products, err := app.gorm.ProductCategories.GetBySlugWithProducts(slug)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), products, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) getProductsByBrandHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	products, err := app.gorm.Brands.GetByIdWithProducts(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), products, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) getProductsByStorefrontHandler(w http.ResponseWriter, r *http.Request) {
+	slug := app.readSlugParam(r)
+
+	products, err := app.gorm.Storefronts.GetBySlugWithProducts(slug)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), products, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}

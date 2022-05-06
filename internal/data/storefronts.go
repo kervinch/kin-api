@@ -64,9 +64,12 @@ func (m StorefrontModel) Get(id int64) (*Storefront, error) {
 		return nil, ErrRecordNotFound
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var storefront *Storefront
 
-	err := m.DB.First(&storefront, id).Error
+	err := m.DB.WithContext(ctx).First(&storefront, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -80,15 +83,29 @@ func (m StorefrontModel) Get(id int64) (*Storefront, error) {
 }
 
 func (m StorefrontModel) Insert(storefront *Storefront) error {
-	err := m.DB.Create(&storefront).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Create(&storefront).Error
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "storefronts_slug_key"`:
+			return ErrDuplicateSlug
+		default:
+			return err
+		}
+	}
 
 	return err
 }
 
 func (m StorefrontModel) Update(s *Storefront) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var storefront *Storefront
 
-	err := m.DB.First(&storefront, s.ID).Error
+	err := m.DB.WithContext(ctx).First(&storefront, s.ID).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -109,6 +126,8 @@ func (m StorefrontModel) Update(s *Storefront) error {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return ErrEditConflict
+		case err.Error() == `pq: duplicate key value violates unique constraint "storefronts_slug_key"`:
+			return ErrDuplicateSlug
 		default:
 			return err
 		}
@@ -122,7 +141,10 @@ func (m StorefrontModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	ra := m.DB.Delete(&Storefront{}, id).RowsAffected
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	ra := m.DB.WithContext(ctx).Delete(&Storefront{}, id).RowsAffected
 	if ra < 1 {
 		return ErrRecordNotFound
 	}
@@ -133,3 +155,26 @@ func (m StorefrontModel) Delete(id int64) error {
 // ====================================================================================
 // Business Functions
 // ====================================================================================
+
+func (m StorefrontModel) GetBySlugWithProducts(slug string) (*Storefront, error) {
+	if slug == "" {
+		return nil, ErrRecordNotFound
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var storefront *Storefront
+
+	err := m.DB.WithContext(ctx).Where("is_active = ? AND slug = ?", true, slug).Preload("Product.ProductCategory").Preload("Product.Brand").Preload("Product.Storefront").Preload("Product.ProductDetail.ProductImage").First(&storefront).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return storefront, nil
+}

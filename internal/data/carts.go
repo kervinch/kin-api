@@ -78,15 +78,21 @@ func (m CartModel) Get(id int64, user *User) (*Cart, error) {
 }
 
 func (m CartModel) Insert(cart *Cart) error {
-	err := m.DB.Create(&cart).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Create(&cart).Error
 
 	return err
 }
 
 func (m CartModel) Update(c *Cart) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var cart *Cart
 
-	err := m.DB.First(&cart, c.ID).Error
+	err := m.DB.WithContext(ctx).First(&cart, c.ID).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -98,7 +104,7 @@ func (m CartModel) Update(c *Cart) error {
 
 	cart.Quantity = c.Quantity
 
-	err = m.DB.Save(&cart).Error
+	err = m.DB.WithContext(ctx).Save(&cart).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -116,7 +122,10 @@ func (m CartModel) Delete(id int64, user *User) error {
 		return ErrRecordNotFound
 	}
 
-	ra := m.DB.Where("id = ? AND user_id = ?", id, user.ID).Delete(&Cart{}).RowsAffected
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	ra := m.DB.WithContext(ctx).Where("id = ? AND user_id = ?", id, user.ID).Delete(&Cart{}).RowsAffected
 	if ra < 1 {
 		return ErrRecordNotFound
 	}

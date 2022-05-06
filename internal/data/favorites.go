@@ -75,7 +75,10 @@ func (m FavoriteModel) Get(id int64, user *User) (*Favorite, error) {
 }
 
 func (m FavoriteModel) Insert(favorite *Favorite) error {
-	err := m.DB.Create(&favorite).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Create(&favorite).Error
 
 	return err
 }
@@ -85,7 +88,10 @@ func (m FavoriteModel) Delete(id int64, user *User) error {
 		return ErrRecordNotFound
 	}
 
-	ra := m.DB.Where("id = ? AND user_id = ?", id, user.ID).Delete(&Favorite{}).RowsAffected
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	ra := m.DB.WithContext(ctx).Where("id = ? AND user_id = ?", id, user.ID).Delete(&Favorite{}).RowsAffected
 	if ra < 1 {
 		return ErrRecordNotFound
 	}

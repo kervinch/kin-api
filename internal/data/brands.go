@@ -13,8 +13,10 @@ type Brand struct {
 	ID          int64     `json:"id"`
 	ImageURL    string    `json:"image_url"`
 	Name        string    `json:"name"`
+	Slug        string    `json:"slug"`
 	OrderNumber int       `json:"order_number"`
 	IsActive    bool      `json:"is_active"`
+	Product     []Product `json:"products"`
 	CreatedAt   time.Time `json:"-"`
 	UpdatedAt   time.Time `json:"-"`
 }
@@ -60,9 +62,12 @@ func (m BrandModel) Get(id int64) (*Brand, error) {
 		return nil, ErrRecordNotFound
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var brand *Brand
 
-	err := m.DB.First(&brand, id).Error
+	err := m.DB.WithContext(ctx).First(&brand, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -76,15 +81,29 @@ func (m BrandModel) Get(id int64) (*Brand, error) {
 }
 
 func (m BrandModel) Insert(brand *Brand) error {
-	err := m.DB.Create(&brand).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Create(&brand).Error
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "brands_slug_key"`:
+			return ErrDuplicateSlug
+		default:
+			return err
+		}
+	}
 
 	return err
 }
 
 func (m BrandModel) Update(b *Brand) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var brand *Brand
 
-	err := m.DB.First(&brand, b.ID).Error
+	err := m.DB.WithContext(ctx).First(&brand, b.ID).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -99,11 +118,13 @@ func (m BrandModel) Update(b *Brand) error {
 	brand.OrderNumber = b.OrderNumber
 	brand.IsActive = b.IsActive
 
-	err = m.DB.Save(&brand).Error
+	err = m.DB.WithContext(ctx).Save(&brand).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return ErrEditConflict
+		case err.Error() == `pq: duplicate key value violates unique constraint "brands_slug_key"`:
+			return ErrDuplicateSlug
 		default:
 			return err
 		}
@@ -117,7 +138,10 @@ func (m BrandModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	ra := m.DB.Delete(&Brand{}, id).RowsAffected
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	ra := m.DB.WithContext(ctx).Delete(&Brand{}, id).RowsAffected
 	if ra < 1 {
 		return ErrRecordNotFound
 	}
@@ -141,4 +165,27 @@ func (m BrandModel) GetAPI() ([]*Brand, error) {
 	}
 
 	return brands, nil
+}
+
+func (m BrandModel) GetByIdWithProducts(id int64) (*Brand, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var brand *Brand
+
+	err := m.DB.WithContext(ctx).Where("is_active = ? AND id = ?", true, id).Preload("Product.ProductCategory").Preload("Product.Brand").Preload("Product.Storefront").Preload("Product.ProductDetail.ProductImage").First(&brand).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return brand, nil
 }

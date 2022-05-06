@@ -258,3 +258,76 @@ func (m ProductModel) DeleteWithTx(id int64, tx *gorm.DB) error {
 // ====================================================================================
 // Business Functions
 // ====================================================================================
+
+func (m ProductModel) GetAPI(p Pagination) ([]*Product, Metadata, error) {
+	var products []*Product
+	var count int64
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Preload("ProductCategory").Preload("Brand").Preload("ProductDetail.ProductImage").Preload("Storefront").Scopes(Paginate(p)).Find(&products).Error
+	if err != nil {
+		return nil, Metadata{}, err
+	}
+
+	err = m.DB.Table("products").Count(&count).Error
+	if err != nil {
+		return nil, Metadata{}, err
+	}
+
+	metadata := calculateMetadata(int(count), p.Page, p.PageSize)
+
+	return products, metadata, nil
+}
+
+func (m ProductModel) GetLatest() ([]*Product, error) {
+	var products []*Product
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Where("is_active = ?", true).Preload("ProductCategory").Preload("Brand").Preload("Storefront").Preload("ProductDetail.ProductImage").Order("created_at desc").Limit(10).Find(&products).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return products, nil
+}
+
+func (m ProductModel) GetRecommendation() ([]*Product, error) {
+	var products []*Product
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Where("is_active = ?", true).Preload("ProductCategory").Preload("Brand").Preload("Storefront").Preload("ProductDetail.ProductImage").Order("id").Limit(10).Find(&products).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return products, nil
+}
+
+func (m ProductModel) GetBySlug(slug string) (*Product, error) {
+	if slug == "" {
+		return nil, ErrRecordNotFound
+	}
+
+	var product *Product
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Where("is_active = ? AND slug = ?", true, slug).Preload("ProductCategory").Preload("Brand").Preload("Storefront").Preload("ProductDetail.ProductImage").First(&product).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return product, nil
+}

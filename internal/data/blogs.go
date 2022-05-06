@@ -73,9 +73,12 @@ func (m BlogModel) Get(id int64) (*Blog, error) {
 		return nil, ErrRecordNotFound
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var blog *Blog
 
-	err := m.DB.Preload("BlogCategory").First(&blog, id).Error
+	err := m.DB.WithContext(ctx).Preload("BlogCategory").First(&blog, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -89,7 +92,10 @@ func (m BlogModel) Get(id int64) (*Blog, error) {
 }
 
 func (m BlogModel) Insert(blog *Blog) error {
-	err := m.DB.Create(&blog).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Create(&blog).Error
 	if err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "blogs_slug_key"`:
@@ -105,7 +111,10 @@ func (m BlogModel) Insert(blog *Blog) error {
 func (m BlogModel) Update(b *Blog) error {
 	var blog *Blog
 
-	err := m.DB.First(&blog, b.ID).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).First(&blog, b.ID).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -126,7 +135,7 @@ func (m BlogModel) Update(b *Blog) error {
 	blog.Status = b.Status
 	blog.Tags = b.Tags
 
-	err = m.DB.Save(&blog).Error
+	err = m.DB.WithContext(ctx).Save(&blog).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -146,7 +155,10 @@ func (m BlogModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	ra := m.DB.Delete(&Blog{}, id).RowsAffected
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	ra := m.DB.WithContext(ctx).Delete(&Blog{}, id).RowsAffected
 	if ra < 1 {
 		return ErrRecordNotFound
 	}

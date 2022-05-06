@@ -172,9 +172,13 @@ func (app *application) updateBlogCategoryHandler(w http.ResponseWriter, r *http
 	err = app.gorm.BlogCategories.Update(blogCategory)
 	if err != nil {
 		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
 		case errors.Is(err, data.ErrDuplicateSlug):
 			v.AddError("slug", "an entry with this slug already exists")
 			app.failedValidationResponse(w, r, v.Errors)
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}

@@ -189,9 +189,13 @@ func (app *application) updateProductCategoryHandler(w http.ResponseWriter, r *h
 	err = app.gorm.ProductCategories.Update(productCategory)
 	if err != nil {
 		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
 		case errors.Is(err, data.ErrDuplicateSlug):
 			v.AddError("slug", "an entry with this slug already exists")
 			app.failedValidationResponse(w, r, v.Errors)
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
@@ -234,7 +238,6 @@ func (app *application) deleteProductCategoryHandler(w http.ResponseWriter, r *h
 
 func (app *application) getProductCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	productCategories, err := app.gorm.ProductCategories.GetAPI()
-
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

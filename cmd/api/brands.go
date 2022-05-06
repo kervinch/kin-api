@@ -85,6 +85,7 @@ func (app *application) createBrandHandler(w http.ResponseWriter, r *http.Reques
 	brand := &data.Brand{
 		ImageURL:    url,
 		Name:        r.FormValue("name"),
+		Slug:        app.slugify(r.FormValue("name")),
 		OrderNumber: orderNumber,
 		IsActive:    r.FormValue("is_active") == "true",
 	}
@@ -98,7 +99,13 @@ func (app *application) createBrandHandler(w http.ResponseWriter, r *http.Reques
 
 	err = app.gorm.Brands.Insert(brand)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrDuplicateSlug):
+			v.AddError("slug", "an entry with this slug already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
@@ -152,6 +159,7 @@ func (app *application) updateBrandHandler(w http.ResponseWriter, r *http.Reques
 
 	brand.ImageURL = url
 	brand.Name = r.FormValue("name")
+	brand.Slug = app.slugify(r.FormValue("name"))
 	brand.OrderNumber = orderNumber
 	brand.IsActive = r.FormValue("is_active") == "true"
 
@@ -164,7 +172,17 @@ func (app *application) updateBrandHandler(w http.ResponseWriter, r *http.Reques
 
 	err = app.gorm.Brands.Update(brand)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		case errors.Is(err, data.ErrDuplicateSlug):
+			v.AddError("slug", "an entry with this slug already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

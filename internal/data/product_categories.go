@@ -16,6 +16,7 @@ type ProductCategory struct {
 	Slug        string    `json:"slug"`
 	OrderNumber int       `json:"order_number"`
 	IsActive    bool      `json:"is_active"`
+	Product     []Product `json:"products"`
 	CreatedAt   time.Time `json:"-"`
 	UpdatedAt   time.Time `json:"-"`
 }
@@ -60,9 +61,12 @@ func (m ProductCategoryModel) Get(id int64) (*ProductCategory, error) {
 		return nil, ErrRecordNotFound
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var productCategory *ProductCategory
 
-	err := m.DB.First(&productCategory, id).Error
+	err := m.DB.WithContext(ctx).First(&productCategory, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -76,7 +80,10 @@ func (m ProductCategoryModel) Get(id int64) (*ProductCategory, error) {
 }
 
 func (m ProductCategoryModel) Insert(productCategory *ProductCategory) error {
-	err := m.DB.Create(&productCategory).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Create(&productCategory).Error
 	if err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "product_categories_slug_key"`:
@@ -90,9 +97,12 @@ func (m ProductCategoryModel) Insert(productCategory *ProductCategory) error {
 }
 
 func (m ProductCategoryModel) Update(p *ProductCategory) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var productCategory *ProductCategory
 
-	err := m.DB.First(&productCategory, p.ID).Error
+	err := m.DB.WithContext(ctx).First(&productCategory, p.ID).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -128,7 +138,10 @@ func (m ProductCategoryModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	ra := m.DB.Delete(&ProductCategory{}, id).RowsAffected
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	ra := m.DB.WithContext(ctx).Delete(&ProductCategory{}, id).RowsAffected
 	if ra < 1 {
 		return ErrRecordNotFound
 	}
@@ -159,9 +172,35 @@ func (m ProductCategoryModel) GetBySlug(slug string) (*ProductCategory, error) {
 		return nil, ErrRecordNotFound
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var productCategory *ProductCategory
 
-	err := m.DB.Where("slug = ?", slug).First(&productCategory).Error
+	err := m.DB.WithContext(ctx).Where("is_active = ? AND slug = ?", true, slug).First(&productCategory).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return productCategory, nil
+}
+
+func (m ProductCategoryModel) GetBySlugWithProducts(slug string) (*ProductCategory, error) {
+	if slug == "" {
+		return nil, ErrRecordNotFound
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var productCategory *ProductCategory
+
+	err := m.DB.WithContext(ctx).Where("is_active = ? AND slug = ?", true, slug).Preload("Product.ProductCategory").Preload("Product.Brand").Preload("Product.Storefront").Preload("Product.ProductDetail.ProductImage").First(&productCategory).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):

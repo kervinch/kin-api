@@ -101,7 +101,13 @@ func (app *application) createStorefrontHandler(w http.ResponseWriter, r *http.R
 
 	err = app.gorm.Storefronts.Insert(storefront)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrDuplicateSlug):
+			v.AddError("slug", "an entry with this slug already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
@@ -169,7 +175,17 @@ func (app *application) updateStorefrontHandler(w http.ResponseWriter, r *http.R
 
 	err = app.gorm.Storefronts.Update(storefront)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		case errors.Is(err, data.ErrDuplicateSlug):
+			v.AddError("slug", "an entry with this slug already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

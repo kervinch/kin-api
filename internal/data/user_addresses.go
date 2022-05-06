@@ -74,15 +74,21 @@ func (m UserAddressModel) Get(id int64, user *User) (*UserAddress, error) {
 }
 
 func (m UserAddressModel) Insert(userAddress *UserAddress) error {
-	err := m.DB.Create(&userAddress).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Create(&userAddress).Error
 
 	return err
 }
 
 func (m UserAddressModel) Update(ua *UserAddress, user *User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var userAddress *UserAddress
 
-	err := m.DB.Where("id = ? AND user_id = ?", ua.ID, user.ID).First(&userAddress).Error
+	err := m.DB.WithContext(ctx).Where("id = ? AND user_id = ?", ua.ID, user.ID).First(&userAddress).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -99,7 +105,7 @@ func (m UserAddressModel) Update(ua *UserAddress, user *User) error {
 	userAddress.PostalCode = ua.PostalCode
 	userAddress.Address = ua.Address
 
-	err = m.DB.Save(&userAddress).Error
+	err = m.DB.WithContext(ctx).Save(&userAddress).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -113,9 +119,12 @@ func (m UserAddressModel) Update(ua *UserAddress, user *User) error {
 }
 
 func (m UserAddressModel) UpdateMain(ua *UserAddress, user *User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	var userAddress *UserAddress
 
-	err := m.DB.Table("user_addresses").Where("user_id = ?", user.ID).Update("is_main", false).Error
+	err := m.DB.WithContext(ctx).Table("user_addresses").Where("user_id = ?", user.ID).Update("is_main", false).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -125,7 +134,7 @@ func (m UserAddressModel) UpdateMain(ua *UserAddress, user *User) error {
 		}
 	}
 
-	err = m.DB.Where("id = ? AND user_id = ?", ua.ID, user.ID).First(&userAddress).Error
+	err = m.DB.WithContext(ctx).Where("id = ? AND user_id = ?", ua.ID, user.ID).First(&userAddress).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -137,7 +146,7 @@ func (m UserAddressModel) UpdateMain(ua *UserAddress, user *User) error {
 
 	userAddress.IsMain = ua.IsMain
 
-	err = m.DB.Save(&userAddress).Error
+	err = m.DB.WithContext(ctx).Save(&userAddress).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -155,7 +164,10 @@ func (m UserAddressModel) Delete(id int64, userID int64) error {
 		return ErrRecordNotFound
 	}
 
-	ra := m.DB.Where("id = ? AND user_id = ?", id, userID).Delete(&UserAddress{}).RowsAffected
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	ra := m.DB.WithContext(ctx).Where("id = ? AND user_id = ?", id, userID).Delete(&UserAddress{}).RowsAffected
 	if ra < 1 {
 		return ErrRecordNotFound
 	}

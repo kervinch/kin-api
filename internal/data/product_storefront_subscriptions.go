@@ -125,14 +125,14 @@ func (m ProductStorefrontSubscriptionModel) UpdateWithTx(productID int64, storef
 
 	err = m.DB.WithContext(ctx).Where("product_id = ?", productID).Find(&pss).Error
 	if err != nil {
-		return err
+		return gorm.ErrRecordNotFound
 	}
 
 	for _, v := range pss {
 		if !slices.Contains(storefrontID, v.StorefrontID) {
-			err = tx.WithContext(ctx).Where("product_id = ? AND storefront_id = ?", productID, v.StorefrontID).Delete(&ProductStorefrontSubscription{}).Error
-			if err != nil {
-				return err
+			ra := tx.WithContext(ctx).Where("product_id = ? AND storefront_id = ?", productID, v.StorefrontID).Delete(&ProductStorefrontSubscription{}).RowsAffected
+			if ra < 1 {
+				return gorm.ErrRecordNotFound
 			}
 		}
 	}
