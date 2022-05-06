@@ -73,7 +73,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/api/products/recommendation", app.getProductsRecommendationHandler)
 	router.HandlerFunc(http.MethodGet, "/api/product/:slug", app.getProductBySlugHandler)
 	router.HandlerFunc(http.MethodGet, "/api/products/product-categories/:slug", app.getProductsByCategoryHandler)
-	router.HandlerFunc(http.MethodGet, "/api/products/brands/:id", app.getProductsByBrandHandler)
+	router.HandlerFunc(http.MethodGet, "/api/products/brands/:slug", app.getProductsByBrandHandler)
 	router.HandlerFunc(http.MethodGet, "/api/products/storefronts/:slug", app.getProductsByStorefrontHandler)
 
 	// Product Categories

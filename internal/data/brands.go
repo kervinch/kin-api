@@ -167,8 +167,8 @@ func (m BrandModel) GetAPI() ([]*Brand, error) {
 	return brands, nil
 }
 
-func (m BrandModel) GetByIdWithProducts(id int64) (*Brand, error) {
-	if id < 1 {
+func (m BrandModel) GetBySlugWithProducts(slug string) (*Brand, error) {
+	if slug == "" {
 		return nil, ErrRecordNotFound
 	}
 
@@ -177,7 +177,7 @@ func (m BrandModel) GetByIdWithProducts(id int64) (*Brand, error) {
 
 	var brand *Brand
 
-	err := m.DB.WithContext(ctx).Where("is_active = ? AND id = ?", true, id).Preload("Product.ProductCategory").Preload("Product.Brand").Preload("Product.Storefront").Preload("Product.ProductDetail.ProductImage").First(&brand).Error
+	err := m.DB.WithContext(ctx).Where("is_active = ? AND slug = ?", true, slug).Preload("Product.ProductCategory").Preload("Product.Brand").Preload("Product.Storefront").Preload("Product.ProductDetail.ProductImage").First(&brand).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):

@@ -606,13 +606,9 @@ func (app *application) getProductsByCategoryHandler(w http.ResponseWriter, r *h
 }
 
 func (app *application) getProductsByBrandHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
-	if err != nil {
-		app.notFoundResponse(w, r)
-		return
-	}
+	slug := app.readSlugParam(r)
 
-	products, err := app.gorm.Brands.GetByIdWithProducts(id)
+	products, err := app.gorm.Brands.GetBySlugWithProducts(slug)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
