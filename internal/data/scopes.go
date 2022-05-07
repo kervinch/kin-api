@@ -23,3 +23,13 @@ func Paginate(p Pagination) func(db *gorm.DB) *gorm.DB {
 		return db.Offset(offset).Limit(pageSize)
 	}
 }
+
+func In(fn string, s []string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if len(s) < 1 {
+			return db
+		}
+
+		return db.Where(fn+" IN ?", s)
+	}
+}
