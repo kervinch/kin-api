@@ -1,10 +1,12 @@
 package data
 
 import (
+	"fmt"
 	"math"
 	"strings"
 
 	"github.com/kervinch/internal/validator"
+	"golang.org/x/exp/slices"
 )
 
 type Filters struct {
@@ -17,6 +19,11 @@ type Filters struct {
 type Pagination struct {
 	Page     int
 	PageSize int
+}
+
+type Sort struct {
+	List         []string
+	SortSafeList []string
 }
 
 type Metadata struct {
@@ -43,6 +50,36 @@ func (f Filters) sortDirection() string {
 	}
 
 	return "ASC"
+}
+
+func (s Sort) sortColumnAndDirection() string {
+	sortString := ""
+
+	for _, value := range s.List {
+		if !slices.Contains(s.SortSafeList, value) {
+			panic("unsafe sort parameter: " + value)
+		}
+	}
+
+	for i, value := range s.List {
+		if i < len(s.List)-1 {
+			if strings.HasPrefix(value, "-") {
+				sortString += strings.TrimPrefix(value, "-") + " DESC, "
+			} else {
+				sortString += strings.TrimPrefix(value, "-") + " ASC, "
+			}
+		} else {
+			if strings.HasPrefix(value, "-") {
+				sortString += strings.TrimPrefix(value, "-") + " DESC"
+			} else {
+				sortString += strings.TrimPrefix(value, "-") + " ASC"
+			}
+		}
+	}
+
+	fmt.Print(sortString)
+
+	return sortString
 }
 
 func (f Filters) limit() int {

@@ -259,14 +259,14 @@ func (m ProductModel) DeleteWithTx(id int64, tx *gorm.DB) error {
 // Business Functions
 // ====================================================================================
 
-func (m ProductModel) GetAPI(p Pagination, name string, size string, minimumPrice int, maximumPrice int, categoryID []string) ([]*Product, Metadata, error) {
+func (m ProductModel) GetAPI(p Pagination, name string, size string, minimumPrice int, maximumPrice int, categoryID []string, sort Sort) ([]*Product, Metadata, error) {
 	var products []*Product
 	var count int64
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Joins("JOIN product_details ON product_details.product_id = products.id AND size = ? AND (price >= ? AND price <= ?)", size, minimumPrice, maximumPrice).Preload("ProductCategory").Preload("Brand").Preload("ProductDetail.ProductImage").Preload("Storefront").Scopes(Paginate(p)).Where("name ILIKE ?", "%"+name+"%").Scopes(In("product_category_id", categoryID)).Find(&products).Error
+	err := m.DB.WithContext(ctx).Joins("JOIN product_details ON product_details.product_id = products.id AND size = ? AND (price >= ? AND price <= ?)", size, minimumPrice, maximumPrice).Preload("ProductCategory").Preload("Brand").Preload("ProductDetail.ProductImage").Preload("Storefront").Scopes(Paginate(p)).Where("name ILIKE ?", "%"+name+"%").Scopes(In("product_category_id", categoryID)).Order(sort.sortColumnAndDirection()).Find(&products).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}

@@ -526,23 +526,25 @@ func (app *application) getProductsHandler(w http.ResponseWriter, r *http.Reques
 		MaximumPrice int
 		CategoryID   []string
 		Color        []string
+		data.Pagination
+		data.Sort
 	}
-	var pagination data.Pagination
 
 	v := validator.New()
 	qs := r.URL.Query()
 
-	// color checklist
-	pagination.Page = app.readInt(qs, "page", 1, v)
-	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
+	input.Pagination.Page = app.readInt(qs, "page", 1, v)
+	input.Pagination.PageSize = app.readInt(qs, "page_size", 20, v)
 	input.Name = app.readStrings(qs, "name", "")
 	input.Size = app.readStrings(qs, "size", "")
 	input.MinimumPrice = app.readInt(qs, "minimum_price", 0, v)
 	input.MaximumPrice = app.readInt(qs, "maximum_price", 100000000, v)
 	input.CategoryID = app.readCSV(qs, "categories", []string{})
 	input.Color = app.readCSV(qs, "colors", []string{})
+	input.Sort.List = app.readCSV(qs, "sort", []string{"id"})
+	input.Sort.SortSafeList = []string{"id", "price", "-id", "-price", "products.id", "-products.id"}
 
-	products, metadata, err := app.gorm.Products.GetAPI(pagination, input.Name, input.Size, input.MinimumPrice, input.MaximumPrice, input.CategoryID)
+	products, metadata, err := app.gorm.Products.GetAPI(input.Pagination, input.Name, input.Size, input.MinimumPrice, input.MaximumPrice, input.CategoryID, input.Sort)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
