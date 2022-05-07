@@ -514,6 +514,98 @@ func (app *application) deleteProductHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+// func (app *application) createProductVariantHandler(w http.ResponseWriter, r *http.Request) {
+// 	r.ParseMultipartForm(data.DefaultMaxMemory)
+
+// 	// =============
+// 	// Product Logic
+// 	// =============
+
+// 	productCategoryID, err := strconv.Atoi(r.FormValue("product_category_id"))
+// 	if err != nil {
+// 		app.badRequestResponse(w, r, err)
+// 		return
+// 	}
+
+// 	brandID, err := strconv.Atoi(r.FormValue("brand_id"))
+// 	if err != nil {
+// 		app.badRequestResponse(w, r, err)
+// 		return
+// 	}
+
+// 	weight, err := strconv.Atoi(r.FormValue("weight"))
+// 	if err != nil {
+// 		app.badRequestResponse(w, r, err)
+// 		return
+// 	}
+
+// 	minimumOrder, err := strconv.Atoi(r.FormValue("minimum_order"))
+// 	if err != nil {
+// 		app.badRequestResponse(w, r, err)
+// 		return
+// 	}
+
+// 	storefrontID, err := app.split(r.FormValue("storefront_id"))
+// 	if err != nil {
+// 		app.badRequestResponse(w, r, err)
+// 		return
+// 	}
+
+// 	preorderDays, err := strconv.Atoi(r.FormValue("preorder_days"))
+// 	if err != nil {
+// 		app.badRequestResponse(w, r, err)
+// 		return
+// 	}
+
+// 	product := &data.Product{
+// 		ProductCategoryID: int64(productCategoryID),
+// 		BrandID:           int64(brandID),
+// 		Name:              r.FormValue("name"),
+// 		Description:       r.FormValue("description"),
+// 		Weight:            weight,
+// 		MinimumOrder:      minimumOrder,
+// 		PreorderDays:      preorderDays,
+// 		Condition:         r.FormValue("condition"),
+// 		Slug:              app.slugify(r.FormValue("name")),
+// 		InsuranceRequired: r.FormValue("insurance_required") == "true",
+// 		IsActive:          r.FormValue("is_active") == "true",
+// 	}
+
+// 	v := validator.New()
+
+// 	if data.ValidateProduct(v, product); !v.Valid() {
+// 		app.failedValidationResponse(w, r, v.Errors)
+// 		return
+// 	}
+
+// 	db := app.gorm.Transaction.DB
+// 	tx := db.Begin()
+
+// 	productID, err := app.gorm.Products.InsertWithTx(product, tx)
+// 	if err != nil {
+// 		switch {
+// 		case errors.Is(err, data.ErrDuplicateSlug):
+// 			v.AddError("slug", "an entry with this slug already exists")
+// 			app.failedValidationResponse(w, r, v.Errors)
+// 		default:
+// 			app.serverErrorResponse(w, r, err)
+// 		}
+// 		return
+// 	}
+
+// 	err = app.gorm.ProductStorefrontSubscriptions.InsertWithTx(productID, storefrontID, tx)
+// 	if err != nil {
+// 		tx.Rollback()
+// 		app.serverErrorResponse(w, r, err)
+// 		return
+// 	}
+
+// 	// ====================
+// 	// Product Detail Logic
+// 	// ====================
+
+// }
+
 // ====================================================================================
 // Business Handlers
 // ====================================================================================
@@ -542,7 +634,7 @@ func (app *application) getProductsHandler(w http.ResponseWriter, r *http.Reques
 	input.CategoryID = app.readCSV(qs, "categories", []string{})
 	input.Color = app.readCSV(qs, "colors", []string{})
 	input.Sort.List = app.readCSV(qs, "sort", []string{"id"})
-	input.Sort.SortSafeList = []string{"id", "price", "-id", "-price", "products.id", "-products.id"}
+	input.Sort.SortSafeList = []string{"id", "price", "-id", "-price"}
 
 	products, metadata, err := app.gorm.Products.GetAPI(input.Pagination, input.Name, input.Size, input.MinimumPrice, input.MaximumPrice, input.CategoryID, input.Sort)
 	if err != nil {

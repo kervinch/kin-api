@@ -266,12 +266,19 @@ func (m ProductModel) GetAPI(p Pagination, name string, size string, minimumPric
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Joins("JOIN product_details ON product_details.product_id = products.id AND size = ? AND (price >= ? AND price <= ?)", size, minimumPrice, maximumPrice).Preload("ProductCategory").Preload("Brand").Preload("ProductDetail.ProductImage").Preload("Storefront").Scopes(Paginate(p)).Where("name ILIKE ?", "%"+name+"%").Scopes(In("product_category_id", categoryID)).Order(sort.sortColumnAndDirection()).Find(&products).Error
-	if err != nil {
-		return nil, Metadata{}, err
+	if size != "" {
+		err := m.DB.WithContext(ctx).Joins("JOIN product_details ON product_details.product_id = products.id AND size ILIKE ? AND (price >= ? AND price <= ?)", size, minimumPrice, maximumPrice).Preload("ProductCategory").Preload("Brand").Preload("ProductDetail.ProductImage").Preload("Storefront").Scopes(Paginate(p)).Where("name ILIKE ?", "%"+name+"%").Scopes(In("product_category_id", categoryID)).Order(sort.sortColumnAndDirection()).Find(&products).Error
+		if err != nil {
+			return nil, Metadata{}, err
+		}
+	} else {
+		err := m.DB.WithContext(ctx).Joins("JOIN product_details ON product_details.product_id = products.id AND (price >= ? AND price <= ?)", minimumPrice, maximumPrice).Preload("ProductCategory").Preload("Brand").Preload("ProductDetail.ProductImage").Preload("Storefront").Scopes(Paginate(p)).Where("name ILIKE ?", "%"+name+"%").Scopes(In("product_category_id", categoryID)).Order(sort.sortColumnAndDirection()).Find(&products).Error
+		if err != nil {
+			return nil, Metadata{}, err
+		}
 	}
 
-	err = m.DB.Table("products").Count(&count).Error
+	err := m.DB.Table("products").Count(&count).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}

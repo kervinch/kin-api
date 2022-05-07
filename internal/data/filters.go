@@ -1,7 +1,6 @@
 package data
 
 import (
-	"fmt"
 	"math"
 	"strings"
 
@@ -76,8 +75,6 @@ func (s Sort) sortColumnAndDirection() string {
 			}
 		}
 	}
-
-	fmt.Print(sortString)
 
 	return sortString
 }
