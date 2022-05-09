@@ -9,6 +9,7 @@ import (
 	"github.com/kervinch/internal/data"
 	"github.com/kervinch/internal/s3"
 	"github.com/kervinch/internal/validator"
+	"golang.org/x/exp/slices"
 )
 
 // ====================================================================================
@@ -514,97 +515,477 @@ func (app *application) deleteProductHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// func (app *application) createProductVariantHandler(w http.ResponseWriter, r *http.Request) {
-// 	r.ParseMultipartForm(data.DefaultMaxMemory)
+func (app *application) createProductVariantsHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseMultipartForm(data.DefaultMaxMemory)
 
-// 	// =============
-// 	// Product Logic
-// 	// =============
+	// =============
+	// Product Logic
+	// =============
 
-// 	productCategoryID, err := strconv.Atoi(r.FormValue("product_category_id"))
-// 	if err != nil {
-// 		app.badRequestResponse(w, r, err)
-// 		return
-// 	}
+	productCategoryID, err := strconv.Atoi(r.FormValue("product_category_id"))
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
 
-// 	brandID, err := strconv.Atoi(r.FormValue("brand_id"))
-// 	if err != nil {
-// 		app.badRequestResponse(w, r, err)
-// 		return
-// 	}
+	brandID, err := strconv.Atoi(r.FormValue("brand_id"))
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
 
-// 	weight, err := strconv.Atoi(r.FormValue("weight"))
-// 	if err != nil {
-// 		app.badRequestResponse(w, r, err)
-// 		return
-// 	}
+	weight, err := strconv.Atoi(r.FormValue("weight"))
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
 
-// 	minimumOrder, err := strconv.Atoi(r.FormValue("minimum_order"))
-// 	if err != nil {
-// 		app.badRequestResponse(w, r, err)
-// 		return
-// 	}
+	minimumOrder, err := strconv.Atoi(r.FormValue("minimum_order"))
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
 
-// 	storefrontID, err := app.split(r.FormValue("storefront_id"))
-// 	if err != nil {
-// 		app.badRequestResponse(w, r, err)
-// 		return
-// 	}
+	storefrontID, err := app.split(r.FormValue("storefront_id"))
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
 
-// 	preorderDays, err := strconv.Atoi(r.FormValue("preorder_days"))
-// 	if err != nil {
-// 		app.badRequestResponse(w, r, err)
-// 		return
-// 	}
+	preorderDays, err := strconv.Atoi(r.FormValue("preorder_days"))
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
 
-// 	product := &data.Product{
-// 		ProductCategoryID: int64(productCategoryID),
-// 		BrandID:           int64(brandID),
-// 		Name:              r.FormValue("name"),
-// 		Description:       r.FormValue("description"),
-// 		Weight:            weight,
-// 		MinimumOrder:      minimumOrder,
-// 		PreorderDays:      preorderDays,
-// 		Condition:         r.FormValue("condition"),
-// 		Slug:              app.slugify(r.FormValue("name")),
-// 		InsuranceRequired: r.FormValue("insurance_required") == "true",
-// 		IsActive:          r.FormValue("is_active") == "true",
-// 	}
+	product := &data.Product{
+		ProductCategoryID: int64(productCategoryID),
+		BrandID:           int64(brandID),
+		Name:              r.FormValue("name"),
+		Description:       r.FormValue("description"),
+		Weight:            weight,
+		MinimumOrder:      minimumOrder,
+		PreorderDays:      preorderDays,
+		Condition:         r.FormValue("condition"),
+		Slug:              app.slugify(r.FormValue("name")),
+		InsuranceRequired: r.FormValue("insurance_required") == "true",
+		IsActive:          r.FormValue("is_active") == "true",
+	}
 
-// 	v := validator.New()
+	v := validator.New()
 
-// 	if data.ValidateProduct(v, product); !v.Valid() {
-// 		app.failedValidationResponse(w, r, v.Errors)
-// 		return
-// 	}
+	if data.ValidateProduct(v, product); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
 
-// 	db := app.gorm.Transaction.DB
-// 	tx := db.Begin()
+	db := app.gorm.Transaction.DB
+	tx := db.Begin()
 
-// 	productID, err := app.gorm.Products.InsertWithTx(product, tx)
-// 	if err != nil {
-// 		switch {
-// 		case errors.Is(err, data.ErrDuplicateSlug):
-// 			v.AddError("slug", "an entry with this slug already exists")
-// 			app.failedValidationResponse(w, r, v.Errors)
-// 		default:
-// 			app.serverErrorResponse(w, r, err)
-// 		}
-// 		return
-// 	}
+	productID, err := app.gorm.Products.InsertWithTx(product, tx)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrDuplicateSlug):
+			v.AddError("slug", "an entry with this slug already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
 
-// 	err = app.gorm.ProductStorefrontSubscriptions.InsertWithTx(productID, storefrontID, tx)
-// 	if err != nil {
-// 		tx.Rollback()
-// 		app.serverErrorResponse(w, r, err)
-// 		return
-// 	}
+	err = app.gorm.ProductStorefrontSubscriptions.InsertWithTx(productID, storefrontID, tx)
+	if err != nil {
+		tx.Rollback()
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
-// 	// ====================
-// 	// Product Detail Logic
-// 	// ====================
+	// ====================
+	// Product Detail Logic
+	// ====================
 
-// }
+	var productDetailID []int64
+
+	variants, err := strconv.Atoi(r.FormValue("variants"))
+	if err != nil {
+		tx.Rollback()
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	for i := 0; i < variants; i++ {
+		price, err := strconv.Atoi(r.FormValue("price_" + strconv.Itoa(i)))
+		if err != nil {
+			tx.Rollback()
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		stock, err := strconv.Atoi(r.FormValue("stock_" + strconv.Itoa(i)))
+		if err != nil {
+			tx.Rollback()
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		productDetail := &data.ProductDetail{
+			ProductID: productID,
+			Color:     r.FormValue("color_" + strconv.Itoa(i)),
+			Size:      r.FormValue("size_" + strconv.Itoa(i)),
+			Price:     int64(price),
+			SKU:       r.FormValue("sku_" + strconv.Itoa(i)),
+			Stock:     stock,
+			IsActive:  r.FormValue("is_active") == "true",
+		}
+
+		v = validator.New()
+
+		if data.ValidateProductDetail(v, productDetail); !v.Valid() {
+			tx.Rollback()
+			app.failedValidationResponse(w, r, v.Errors)
+			return
+		}
+
+		id, err := app.gorm.ProductDetails.InsertWithTx(productDetail, tx)
+		if err != nil {
+			tx.Rollback()
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+
+		productDetailID = append(productDetailID, id)
+	}
+
+	if variants != len(productDetailID) {
+		tx.Rollback()
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	tx.Commit()
+
+	// ====================
+	// Product Images Logic
+	// ====================
+
+	app.background(func() {
+		tx := app.gorm.Transaction.DB
+
+		for i, pdid := range productDetailID {
+			for _, handler := range r.MultipartForm.File["product_images_"+strconv.Itoa(i)] {
+				file, err := handler.Open()
+				if err != nil {
+					tx.Rollback()
+					app.fileNotFoundResponse(w, r, "product_images"+strconv.Itoa(i))
+					return
+				}
+
+				defer file.Close()
+
+				url, err := app.s3.Upload(file, s3.PRODUCT, handler.Filename, handler.Header.Get("Content-Type"))
+				if err != nil {
+					tx.Rollback()
+					switch {
+					case errors.Is(err, data.ErrImageFormat):
+						app.badRequestResponse(w, r, err)
+					default:
+						app.serverErrorResponse(w, r, err)
+					}
+					return
+				}
+
+				productImages := &data.ProductImage{
+					ProductDetailID: pdid,
+					ImageURL:        url,
+					IsMain:          r.FormValue("is_main") == "true",
+				}
+
+				v = validator.New()
+
+				if data.ValidateProductImage(v, productImages); !v.Valid() {
+					tx.Rollback()
+					app.failedValidationResponse(w, r, v.Errors)
+					return
+				}
+
+				err = app.gorm.ProductImages.InsertWithTx(productImages, tx)
+				if err != nil {
+					tx.Rollback()
+					app.serverErrorResponse(w, r, err)
+					return
+				}
+			}
+		}
+
+		tx.Commit()
+	})
+
+	headers := make(http.Header)
+	headers.Set("Location", fmt.Sprintf("/products/%d", product.ID))
+
+	err = app.writeJSON(w, http.StatusCreated, http.StatusText(http.StatusCreated), product, headers)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) updateProductVariantsHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseMultipartForm(data.DefaultMaxMemory)
+
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	product, err := app.gorm.Products.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// =============
+	// Product Logic
+	// =============
+
+	productCategoryID, err := strconv.Atoi(r.FormValue("product_category_id"))
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	brandID, err := strconv.Atoi(r.FormValue("brand_id"))
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	weight, err := strconv.Atoi(r.FormValue("weight"))
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	minimumOrder, err := strconv.Atoi(r.FormValue("minimum_order"))
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	storefrontID, err := app.split(r.FormValue("storefront_id"))
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	preorderDays, err := strconv.Atoi(r.FormValue("preorder_days"))
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	product.ProductCategoryID = int64(productCategoryID)
+	product.BrandID = int64(brandID)
+	product.Name = r.FormValue("name")
+	product.Description = r.FormValue("description")
+	product.Weight = weight
+	product.MinimumOrder = minimumOrder
+	product.PreorderDays = preorderDays
+	product.Condition = r.FormValue("condition")
+	product.Slug = app.slugify(r.FormValue("name"))
+	product.InsuranceRequired = r.FormValue("insurance_required") == "true"
+	product.IsActive = r.FormValue("is_active") == "true"
+
+	v := validator.New()
+
+	if data.ValidateProduct(v, product); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	db := app.gorm.Transaction.DB
+	tx := db.Begin()
+
+	err = app.gorm.Products.UpdateWithTx(product, tx)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		case errors.Is(err, data.ErrDuplicateSlug):
+			v.AddError("slug", "an entry with this slug already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.gorm.ProductStorefrontSubscriptions.UpdateWithTx(product.ID, storefrontID, tx)
+	if err != nil {
+		tx.Rollback()
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+	}
+
+	// ====================
+	// Product Detail Logic
+	// ====================
+
+	// get variants formvalue OK
+	// get all product details of the product OK
+	// loop through variants OK
+	// if have product_detail_id_index then update (color_index, size_index etc.) OK
+	// if doesn't have product_detail_id then create new product detail OK
+	// compare product details id existing list with the new input from user, delete the difference OK
+
+	variants, err := strconv.Atoi(r.FormValue("variants"))
+	if err != nil {
+		tx.Rollback()
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	var pdids []int64
+
+	for i := 0; i < variants; i++ {
+		pdid, err := strconv.Atoi(r.FormValue("product_detail_id_" + strconv.Itoa(i)))
+		if err != nil {
+			tx.Rollback()
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		pdid64 := int64(pdid)
+
+		pdids = append(pdids, pdid64)
+	}
+
+	for _, pd := range product.ProductDetail {
+		if !slices.Contains(pdids, pd.ID) {
+			err = app.gorm.ProductDetails.DeleteWithTx(pd.ID, tx)
+			if err != nil {
+				tx.Rollback()
+				switch {
+				case errors.Is(err, data.ErrRecordNotFound):
+					app.notFoundResponse(w, r)
+				default:
+					app.serverErrorResponse(w, r, err)
+				}
+				return
+			}
+		}
+	}
+
+	for i := 0; i < variants; i++ {
+		pdid := pdids[i]
+
+		price, err := strconv.Atoi(r.FormValue("price_" + strconv.Itoa(i)))
+		if err != nil {
+			tx.Rollback()
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		stock, err := strconv.Atoi(r.FormValue("stock_" + strconv.Itoa(i)))
+		if err != nil {
+			tx.Rollback()
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		// if pdid < 1, create new product detail, else update the product detail
+		if pdid < 1 {
+			productDetail := &data.ProductDetail{
+				ProductID: product.ID,
+				Color:     r.FormValue("color_" + strconv.Itoa(i)),
+				Size:      r.FormValue("size_" + strconv.Itoa(i)),
+				Price:     int64(price),
+				SKU:       r.FormValue("sku_" + strconv.Itoa(i)),
+				Stock:     stock,
+				IsActive:  r.FormValue("is_active") == "true",
+			}
+
+			v = validator.New()
+
+			if data.ValidateProductDetail(v, productDetail); !v.Valid() {
+				tx.Rollback()
+				app.failedValidationResponse(w, r, v.Errors)
+				return
+			}
+
+			_, err := app.gorm.ProductDetails.InsertWithTx(productDetail, tx)
+			if err != nil {
+				tx.Rollback()
+				app.serverErrorResponse(w, r, err)
+				return
+			}
+		} else {
+			productDetail, err := app.gorm.ProductDetails.Get(int64(pdid))
+			if err != nil {
+				switch {
+				case errors.Is(err, data.ErrRecordNotFound):
+					app.notFoundResponse(w, r)
+				default:
+					app.serverErrorResponse(w, r, err)
+				}
+				return
+			}
+
+			productDetail.Color = r.FormValue("color_" + strconv.Itoa(i))
+			productDetail.Size = r.FormValue("size_" + strconv.Itoa(i))
+			productDetail.Price = int64(price)
+			productDetail.SKU = r.FormValue("sku_" + strconv.Itoa(i))
+			productDetail.Stock = stock
+			productDetail.IsActive = r.FormValue("is_active") == "true"
+
+			v = validator.New()
+
+			if data.ValidateProductDetail(v, productDetail); !v.Valid() {
+				tx.Rollback()
+				app.failedValidationResponse(w, r, v.Errors)
+				return
+			}
+
+			err = app.gorm.ProductDetails.UpdateWithTx(productDetail, tx)
+			if err != nil {
+				tx.Rollback()
+				if err != nil {
+					switch {
+					case errors.Is(err, data.ErrRecordNotFound):
+						app.notFoundResponse(w, r)
+					case errors.Is(err, data.ErrEditConflict):
+						app.editConflictResponse(w, r)
+					default:
+						app.serverErrorResponse(w, r, err)
+					}
+					return
+				}
+			}
+		}
+	}
+
+	tx.Commit()
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), "product variants successfully updated", nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
 
 // ====================================================================================
 // Business Handlers

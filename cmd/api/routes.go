@@ -135,6 +135,8 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/cms/products", app.createProductHandler)
 	router.HandlerFunc(http.MethodPut, "/cms/products/:id", app.updateProductHandler)
 	router.HandlerFunc(http.MethodDelete, "/cms/products/:id", app.deleteProductHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/products/variants", app.createProductVariantsHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/products/:id/variants", app.updateProductVariantsHandler)
 
 	// Product Categories
 	router.HandlerFunc(http.MethodGet, "/cms/product-categories", app.listProductCategoriesHandler)
