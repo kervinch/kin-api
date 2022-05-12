@@ -67,6 +67,10 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/api/favorites", app.requireAuthenticatedUser(app.createFavoriteHandler))
 	router.HandlerFunc(http.MethodDelete, "/api/favorites/:id", app.requireAuthenticatedUser(app.deleteFavoriteHandler))
 
+	// Inbox
+	router.HandlerFunc(http.MethodGet, "/api/inbox", app.requireAuthenticatedUser(app.getInboxHandler))
+	router.HandlerFunc(http.MethodGet, "/api/inbox/:slug", app.requireAuthenticatedUser(app.getInboxBySlugHandler))
+
 	// Products
 	router.HandlerFunc(http.MethodGet, "/api/products", app.getProductsHandler)
 	router.HandlerFunc(http.MethodGet, "/api/products/latest", app.getProductsLatestHandler)
@@ -120,6 +124,13 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/cms/brands", app.createBrandHandler)
 	router.HandlerFunc(http.MethodPut, "/cms/brands/:id", app.updateBrandHandler)
 	router.HandlerFunc(http.MethodDelete, "/cms/brands/:id", app.deleteBrandHandler)
+
+	// Inbox
+	router.HandlerFunc(http.MethodGet, "/cms/inbox", app.listInboxHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/inbox/:id", app.showInboxHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/inbox", app.createInboxHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/inbox/:id", app.updateInboxHandler)
+	router.HandlerFunc(http.MethodDelete, "/cms/inbox/:id", app.deleteInboxHandler)
 
 	// Movies
 	router.HandlerFunc(http.MethodGet, "/cms/movies", app.requireAuthenticatedAdmin(app.listMoviesHandler))

@@ -846,13 +846,6 @@ func (app *application) updateProductVariantsHandler(w http.ResponseWriter, r *h
 	// Product Detail Logic
 	// ====================
 
-	// get variants formvalue OK
-	// get all product details of the product OK
-	// loop through variants OK
-	// if have product_detail_id_index then update (color_index, size_index etc.) OK
-	// if doesn't have product_detail_id then create new product detail OK
-	// compare product details id existing list with the new input from user, delete the difference OK
-
 	variants, err := strconv.Atoi(r.FormValue("variants"))
 	if err != nil {
 		tx.Rollback()
@@ -875,6 +868,7 @@ func (app *application) updateProductVariantsHandler(w http.ResponseWriter, r *h
 		pdids = append(pdids, pdid64)
 	}
 
+	// Delete the difference between existing pdids & new pdids input
 	for _, pd := range product.ProductDetail {
 		if !slices.Contains(pdids, pd.ID) {
 			err = app.gorm.ProductDetails.DeleteWithTx(pd.ID, tx)
@@ -908,7 +902,7 @@ func (app *application) updateProductVariantsHandler(w http.ResponseWriter, r *h
 			return
 		}
 
-		// if pdid < 1, create new product detail, else update the product detail
+		// If pdid < 1, create new product detail, else update the product detail
 		if pdid < 1 {
 			productDetail := &data.ProductDetail{
 				ProductID: product.ID,

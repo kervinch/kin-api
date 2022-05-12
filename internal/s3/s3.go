@@ -19,6 +19,7 @@ const (
 	BRAND            = "brands/"
 	BLOG             = "blogs/"
 	BLOG_CATEGORY    = "blog_categories/"
+	INBOX            = "inbox/"
 	PRODUCT          = "products/"
 	PRODUCT_CATEGORY = "product_categories/"
 	STOREFRONT       = "storefronts/"

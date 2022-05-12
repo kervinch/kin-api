@@ -36,6 +36,8 @@ type Gorm struct {
 	BlogCategories                 BlogCategoryModel
 	Carts                          CartModel
 	Favorites                      FavoriteModel
+	Inbox                          InboxModel
+	InboxUsers                     InboxUserModel
 	Products                       ProductModel
 	ProductCategories              ProductCategoryModel
 	ProductDetails                 ProductDetailModel
@@ -65,6 +67,8 @@ func GormModels(db *gorm.DB) Gorm {
 		BlogCategories:                 BlogCategoryModel{DB: db},
 		Carts:                          CartModel{DB: db},
 		Favorites:                      FavoriteModel{DB: db},
+		Inbox:                          InboxModel{DB: db},
+		InboxUsers:                     InboxUserModel{DB: db},
 		Products:                       ProductModel{DB: db},
 		ProductCategories:              ProductCategoryModel{DB: db},
 		ProductDetails:                 ProductDetailModel{DB: db},
