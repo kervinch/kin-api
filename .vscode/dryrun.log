@@ -1,0 +1,5 @@
+make: Entering directory `/Users/kervin/Documents/kin-api'
+echo 'Usage:'
+sed -n 's/^##//p'  Makefile .envrc | column -t -s ':' | sed -e 's/^/ /'
+make: Leaving directory `/Users/kervin/Documents/kin-api'
+ 

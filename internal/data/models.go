@@ -14,6 +14,7 @@ var (
 	ErrInvalidEnum    = errors.New("invalid enum value")
 	ErrBadRequest     = errors.New("bad request")
 	ErrImageFormat    = errors.New("unknown image format")
+	ErrOutOfStock     = errors.New("out of stock")
 )
 
 type TransactionModel struct {
@@ -38,6 +39,12 @@ type Gorm struct {
 	Favorites                      FavoriteModel
 	Inbox                          InboxModel
 	InboxUsers                     InboxUserModel
+	InvoiceDetails                 InvoiceDetailModel
+	Logistics                      LogisticModel
+	Orders                         OrderModel
+	OrderDetails                   OrderDetailModel
+	OrderRefunds                   OrderRefundModel
+	OrderShippings                 OrderShippingModel
 	Products                       ProductModel
 	ProductCategories              ProductCategoryModel
 	ProductDetails                 ProductDetailModel
@@ -46,6 +53,7 @@ type Gorm struct {
 	ProductStorefrontSubscriptions ProductStorefrontSubscriptionModel
 	Storefronts                    StorefrontModel
 	UserAddresses                  UserAddressModel
+	Vouchers                       VoucherModel
 }
 
 func NewModels(db *sql.DB) Models {
@@ -69,6 +77,12 @@ func GormModels(db *gorm.DB) Gorm {
 		Favorites:                      FavoriteModel{DB: db},
 		Inbox:                          InboxModel{DB: db},
 		InboxUsers:                     InboxUserModel{DB: db},
+		InvoiceDetails:                 InvoiceDetailModel{DB: db},
+		Logistics:                      LogisticModel{DB: db},
+		Orders:                         OrderModel{DB: db},
+		OrderDetails:                   OrderDetailModel{DB: db},
+		OrderRefunds:                   OrderRefundModel{DB: db},
+		OrderShippings:                 OrderShippingModel{DB: db},
 		Products:                       ProductModel{DB: db},
 		ProductCategories:              ProductCategoryModel{DB: db},
 		ProductDetails:                 ProductDetailModel{DB: db},
@@ -77,5 +91,6 @@ func GormModels(db *gorm.DB) Gorm {
 		ProductStorefrontSubscriptions: ProductStorefrontSubscriptionModel{DB: db},
 		Storefronts:                    StorefrontModel{DB: db},
 		UserAddresses:                  UserAddressModel{DB: db},
+		Vouchers:                       VoucherModel{DB: db},
 	}
 }
