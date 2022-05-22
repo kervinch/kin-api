@@ -17,8 +17,8 @@ type InvoiceDetail struct {
 	ProductDetail   ProductDetail `json:"product_detail"`
 	ProductName     string        `json:"product_name"`
 	Quantity        int           `json:"quantity"`
-	Price           int           `json:"price"`
-	Status          string        `json:"status"`
+	Price           int64         `json:"price"`
+	Total           int64         `json:"total"`
 	CreatedAt       time.Time     `json:"-"`
 	UpdatedAt       time.Time     `json:"-"`
 }

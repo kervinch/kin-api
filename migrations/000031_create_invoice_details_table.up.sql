@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS invoice_details (
   product_detail_id bigint REFERENCES product_details ON DELETE CASCADE,
   product_name text NOT NULL,
   quantity integer NOT NULL,
-  price integer NOT NULL,
-  total integer NOT NULL,
+  price bigint NOT NULL,
+  total bigint NOT NULL,
   created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
   updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW()
 );

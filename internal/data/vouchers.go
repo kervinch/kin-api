@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -10,24 +11,24 @@ import (
 )
 
 type Voucher struct {
-	ID                int64     `json:"id"`
-	Type              string    `json:"type"`
-	Name              string    `json:"name"`
-	Description       string    `json:"description"`
-	TermsAndCondition string    `json:"terms_and_condition"`
-	BrandID           int64     `json:"brand_id"`
-	Brand             Brand     `json:"brand"`
-	LogisticID        int64     `json:"logistic_id"`
-	Logistic          Logistic  `json:"logistic"`
-	Code              string    `json:"code"`
-	IsPercent         bool      `json:"is_percent"`
-	Value             int       `json:"value"`
-	Stock             int       `json:"stock"`
-	IsActive          bool      `json:"is_active"`
-	EffectiveAt       time.Time `json:"effective_at"`
-	ExpiredAt         time.Time `json:"expired_at"`
-	CreatedAt         time.Time `json:"-"`
-	UpdatedAt         time.Time `json:"-"`
+	ID                int64         `json:"id"`
+	Type              string        `json:"type"`
+	Name              string        `json:"name"`
+	Description       string        `json:"description"`
+	TermsAndCondition string        `json:"terms_and_condition"`
+	BrandID           sql.NullInt64 `json:"brand_id"`
+	Brand             Brand         `json:"brand"`
+	LogisticID        sql.NullInt64 `json:"logistic_id"`
+	Logistic          Logistic      `json:"logistic"`
+	Code              string        `json:"code"`
+	IsPercent         bool          `json:"is_percent"`
+	Value             int           `json:"value"`
+	Stock             int           `json:"stock"`
+	IsActive          bool          `json:"is_active"`
+	EffectiveAt       time.Time     `json:"effective_at"`
+	ExpiredAt         time.Time     `json:"expired_at"`
+	CreatedAt         time.Time     `json:"-"`
+	UpdatedAt         time.Time     `json:"-"`
 }
 
 func ValidateVoucher(v *validator.Validator, voucher *Voucher) {
@@ -180,7 +181,7 @@ func (m VoucherModel) GetByBrands(p Pagination, brandID []int) ([]*Voucher, Meta
 	return voucher, metadata, nil
 }
 
-func (m VoucherModel) Consume(id int) error {
+func (m VoucherModel) Consume(id int64) error {
 	if id < 1 {
 		return ErrRecordNotFound
 	}
@@ -204,6 +205,8 @@ func (m VoucherModel) Consume(id int) error {
 		return ErrOutOfStock
 	}
 
+	voucher.BrandID = sql.NullInt64{}
+	voucher.LogisticID = sql.NullInt64{}
 	voucher.Stock = voucher.Stock - 1
 
 	err = m.DB.WithContext(ctx).Save(&voucher).Error
@@ -217,4 +220,23 @@ func (m VoucherModel) Consume(id int) error {
 	}
 
 	return nil
+}
+
+func (m VoucherModel) GetByID(id int64) (*Voucher, error) {
+	var voucher *Voucher
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Where("id = ?", id).Where("is_active = ?", true).First(&voucher).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return voucher, nil
 }

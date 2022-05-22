@@ -2,6 +2,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # GNU Make 3.81
 # Copyright (C) 2006  Free Software Foundation, Inc.
 # This is free software; see the source for copying conditions.
+ 
 # There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
@@ -10,12 +11,13 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target `all'.  Stop.
 
 
-# Make data base, printed on Thu May 19 16:07:27 2022
+# Make data base, printed on Fri May 20 18:20:06 2022
 
 # Variables
 
 # automatic
 <D = $(patsubst %/,%,$(dir $<))
+ 
 # automatic
 ?F = $(notdir $?)
 # makefile (from `.envrc', line 6)
@@ -47,7 +49,7 @@ __CFBundleIdentifier = com.microsoft.VSCode
 # environment
 INFOPATH = /opt/homebrew/share/info:
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/48/vg8936dx17j9pqslg2hm5h_c0000gn/T/vscode-ipc-69f31332-3b9e-48e0-b8c5-5bb1b8d17e27.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/48/vg8936dx17j9pqslg2hm5h_c0000gn/T/vscode-ipc-1afc5433-817b-4c79-b2fe-2cada048219d.sock
 # environment
 VSCODE_CWD = /
 # environment
@@ -117,7 +119,6 @@ USER = kervin
 # makefile (from `.envrc', line 5)
 AWS_ACCESS_KEY_ID = AKIAVQAV2PVA3CNQPVLQ
 # default
- 
 MAKE_COMMAND := /Library/Developer/CommandLineTools/usr/bin/make
 # default
 .VARIABLES := 
@@ -168,6 +169,7 @@ AWS_REGION = ap-southeast-1
 # environment
 MAKELEVEL := 0
 # environment
+ 
 LANG = C
 # environment
 VSCODE_PID = 52106
@@ -345,6 +347,7 @@ vendor:
 #  File does not exist.
 #  File has not been updated.
 #  commands to execute (from `Makefile', line 67):
+ 
 	@echo 'Tidying and verifying module dependencies...'
 	go mod tidy
 	go mod verify
@@ -365,6 +368,6 @@ vendor:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4080 / max = 4080 / min = 4080 / avg = 4080
 
-# Finished Make data base on Thu May 19 16:07:27 2022
+# Finished Make data base on Fri May 20 18:20:06 2022
 
  

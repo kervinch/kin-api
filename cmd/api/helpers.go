@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gosimple/slug"
 	"github.com/julienschmidt/httprouter"
@@ -259,4 +260,22 @@ func (app *application) split(text string) ([]int64, error) {
 	}
 
 	return slc, nil
+}
+
+func (app *application) appendIfMissing(slice []int64, i int64) []int64 {
+	for _, ok := range slice {
+		if ok == i {
+			return slice
+		}
+	}
+
+	return append(slice, i)
+}
+
+func (app *application) generateInvoiceNumber(userID int64, orderID int64, brandID int64) string {
+	// Format: userID/orderID/brandID/dateTime
+
+	invoiceNumber := fmt.Sprintf("%s/%s/%s/%s", strconv.Itoa(int(userID)), strconv.Itoa(int(orderID)), strconv.Itoa(int(brandID)), strconv.Itoa(int(time.Now().Unix())))
+
+	return invoiceNumber
 }

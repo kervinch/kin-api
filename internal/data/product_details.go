@@ -71,7 +71,7 @@ func (m ProductDetailModel) Get(id int64) (*ProductDetail, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Preload("ProductImage").First(&productDetail, id).Error
+	err := m.DB.WithContext(ctx).Preload("Product").Preload("ProductImage").First(&productDetail, id).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):

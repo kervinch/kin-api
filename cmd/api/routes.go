@@ -71,6 +71,10 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/api/inbox", app.requireAuthenticatedUser(app.getInboxHandler))
 	router.HandlerFunc(http.MethodGet, "/api/inbox/:slug", app.requireAuthenticatedUser(app.getInboxBySlugHandler))
 
+	// Orders
+	router.HandlerFunc(http.MethodGet, "/api/orders", app.requireAuthenticatedUser(app.getOrdersHandler))
+	router.HandlerFunc(http.MethodPost, "/api/orders", app.requireAuthenticatedUser(app.createOrdersHandler))
+
 	// Products
 	router.HandlerFunc(http.MethodGet, "/api/products", app.getProductsHandler)
 	router.HandlerFunc(http.MethodGet, "/api/products/latest", app.getProductsLatestHandler)

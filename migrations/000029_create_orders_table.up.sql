@@ -1,4 +1,4 @@
-CREATE TYPE orders_status_enum AS ENUM ('awaiting_payment', 'paid', 'pending', 'processing', 'completed', 'refund_requested', 'refund_rejected', 'refund_completed');
+CREATE TYPE orders_status_enum AS ENUM ('awaiting_payment', 'paid', 'pending', 'processing', 'delivery' 'completed', 'refund_requested', 'refund_rejected', 'refund_completed');
 
 CREATE TABLE IF NOT EXISTS orders (
   id bigserial PRIMARY KEY,
@@ -8,9 +8,9 @@ CREATE TABLE IF NOT EXISTS orders (
   city text NOT NULL,
   postal_code text NOT NULL,
   address text NOT NULL,
-  subtotal integer NOT NULL,
+  subtotal bigint,
   voucher_id bigint REFERENCES vouchers ON DELETE CASCADE,
-  total integer NOT NULL,
+  total bigint,
   status orders_status_enum NOT NULL DEFAULT 'awaiting_payment',
   created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
   updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW()
