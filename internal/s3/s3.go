@@ -22,6 +22,7 @@ const (
 	INBOX            = "inbox/"
 	PRODUCT          = "products/"
 	PRODUCT_CATEGORY = "product_categories/"
+	PRODUCT_REFUND   = "product_refunds/"
 	STOREFRONT       = "storefronts/"
 )
 
@@ -90,6 +91,55 @@ func (s S3) Upload(file multipart.File, key, filename, contentType string) (stri
 		return "", data.ErrImageFormat
 	default:
 		return "", data.ErrImageFormat
+	}
+
+	// Upload the file to S3
+	_, err = svc.PutObject(&s3.PutObjectInput{
+		Body:        file,
+		Bucket:      aws.String(s.bucketName),
+		Key:         aws.String(key + filename),
+		ACL:         aws.String("public-read"),
+		ContentType: aws.String(contentType),
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return URL + key + filename, nil
+}
+
+func (s S3) UploadVideo(file multipart.File, key, filename, contentType string) (string, error) {
+	sess, err := session.NewSession(&aws.Config{
+		Region: aws.String(REGION)},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	// Create an S3 session.
+	svc := s3.New(sess)
+
+	// Check if file is image
+	buff := make([]byte, 512)
+	_, err = file.Read(buff)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	filetype := http.DetectContentType(buff)
+	switch filetype {
+	case "video/mp4":
+	case "video/x-flv":
+	case "application/x-mpegURL":
+	case "video/MP2T":
+	case "video/3gpp":
+	case "video/quicktime":
+	case "video/x-msvideo":
+	case "video/x-ms-wmv":
+	default:
+		return "", data.ErrVideoFormat
 	}
 
 	// Upload the file to S3

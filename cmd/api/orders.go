@@ -10,6 +10,55 @@ import (
 )
 
 // ====================================================================================
+// Backoffice Handlers
+// ====================================================================================
+
+func (app *application) listOrdersHandler(w http.ResponseWriter, r *http.Request) {
+	var pagination data.Pagination
+
+	v := validator.New()
+	qs := r.URL.Query()
+
+	pagination.Page = app.readInt(qs, "page", 1, v)
+	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
+
+	orders, metadata, err := app.gorm.Orders.GetAll(pagination)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSONWithMeta(w, http.StatusOK, http.StatusText(http.StatusOK), orders, nil, metadata)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) showOrderHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	order, err := app.gorm.Orders.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), order, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+// ====================================================================================
 // Business Handlers
 // ====================================================================================
 
@@ -333,6 +382,53 @@ func (app *application) createOrdersHandler(w http.ResponseWriter, r *http.Reque
 	tx.Commit()
 
 	err = app.writeJSON(w, http.StatusCreated, http.StatusText(http.StatusCreated), order, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) updateOrdersHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	var input struct {
+		Status string `json:"status"`
+	}
+
+	err = app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	order, err := app.gorm.Orders.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	order.Status = input.Status
+
+	err = app.gorm.Orders.Update(order)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), order, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

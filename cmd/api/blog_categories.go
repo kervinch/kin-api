@@ -62,6 +62,7 @@ func (app *application) showBlogCategoryHandler(w http.ResponseWriter, r *http.R
 
 func (app *application) createBlogCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(data.DefaultMaxMemory)
+
 	file, handler, err := r.FormFile("image")
 	if err != nil {
 		app.fileNotFoundResponse(w, r, "image")

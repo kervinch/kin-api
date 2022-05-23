@@ -53,7 +53,7 @@ func (m OrderModel) GetAll(p Pagination) ([]*Order, Metadata, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Order("created_at DESC").Find(&order).Error
+	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Preload("Voucher").Order("created_at DESC").Find(&order).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
@@ -85,6 +85,37 @@ func (m OrderModel) Get(id int64) (*Order, error) {
 	}
 
 	return order, nil
+}
+
+func (m OrderModel) Update(o *Order) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var order *Order
+
+	err := m.DB.WithContext(ctx).First(&order, o.ID).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+
+	order.Status = o.Status
+
+	err = m.DB.Save(&order).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
 }
 
 // ====================================================================================

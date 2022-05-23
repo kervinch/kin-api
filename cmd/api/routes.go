@@ -74,6 +74,11 @@ func (app *application) routes() http.Handler {
 	// Orders
 	router.HandlerFunc(http.MethodGet, "/api/orders", app.requireAuthenticatedUser(app.getOrdersHandler))
 	router.HandlerFunc(http.MethodPost, "/api/orders", app.requireAuthenticatedUser(app.createOrdersHandler))
+	router.HandlerFunc(http.MethodPut, "/api/orders/:id", app.requireAuthenticatedUser(app.updateOrdersHandler))
+
+	// Order Refunds
+	router.HandlerFunc(http.MethodPost, "/api/order-refunds", app.requireAuthenticatedUser(app.createOrderRefundHandler))
+	router.HandlerFunc(http.MethodGet, "/api/order-refunds", app.requireAuthenticatedUser(app.getOrderRefundHandler))
 
 	// Products
 	router.HandlerFunc(http.MethodGet, "/api/products", app.getProductsHandler)
@@ -143,6 +148,15 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPut, "/cms/movies/:id", app.requireAuthenticatedAdmin(app.fullUpdateMovieHandler))
 	router.HandlerFunc(http.MethodPatch, "/cms/movies/:id", app.requirePermission("movies:write", app.updateMovieHandler))
 	router.HandlerFunc(http.MethodDelete, "/cms/movies/:id", app.requirePermission("movies:write", app.deleteMovieHandler))
+
+	// Orders
+	router.HandlerFunc(http.MethodGet, "/cms/orders", app.listOrdersHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/orders/:id", app.showOrderHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/orders/:id", app.updateOrdersHandler)
+
+	// Order Refunds
+	router.HandlerFunc(http.MethodGet, "/cms/order-refunds", app.listOrderRefundsHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/order-refunds/:id", app.showOrderRefundHandler)
 
 	// Products
 	router.HandlerFunc(http.MethodGet, "/cms/products", app.listProductsHandler)

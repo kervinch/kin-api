@@ -1,0 +1,1 @@
+ALTER TABLE order_refunds DROP COLUMN IF EXISTS user_id;

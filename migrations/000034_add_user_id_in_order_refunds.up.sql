@@ -1,0 +1,1 @@
+ALTER TABLE order_refunds ADD COLUMN user_id bigint NOT NULL REFERENCES users ON DELETE CASCADE;

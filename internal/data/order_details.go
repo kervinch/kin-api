@@ -135,7 +135,7 @@ func (m OrderDetailModel) InsertWithTx(orderDetail *OrderDetail, tx *gorm.DB) (i
 
 	orderDetailID := orderDetail.ID
 
-	return orderDetailID, nil
+	return orderDetailID, err
 }
 
 func (m OrderDetailModel) SetTotalWithTx(id int64, subtotal int64, total int64, tx *gorm.DB) error {

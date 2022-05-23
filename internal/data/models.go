@@ -14,6 +14,7 @@ var (
 	ErrInvalidEnum    = errors.New("invalid enum value")
 	ErrBadRequest     = errors.New("bad request")
 	ErrImageFormat    = errors.New("unknown image format")
+	ErrVideoFormat    = errors.New("unknown video format")
 	ErrOutOfStock     = errors.New("out of stock")
 )
 
