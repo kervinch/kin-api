@@ -14,6 +14,7 @@ type InboxUser struct {
 	Inbox     Inbox     `json:"inbox"`
 	InboxID   int64     `json:"inbox_id"`
 	UserID    int64     `json:"user_id"`
+	GormUser  GormUser  `json:"user" gorm:"foreignKey:UserID"`
 	IsRead    bool      `json:"is_read"`
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
@@ -39,6 +40,14 @@ func (m InboxUserModel) Insert(inboxUser *InboxUser) error {
 	defer cancel()
 
 	err := m.DB.WithContext(ctx).Create(&inboxUser).Error
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "idx_inbox_users"`:
+			return ErrDuplicateKeyValue
+		default:
+			return err
+		}
+	}
 
 	return err
 }

@@ -61,7 +61,7 @@ func (app *application) rateLimitExceededResponse(w http.ResponseWriter, r *http
 }
 
 func (app *application) invalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
-	message := "invalid authentication credentials"
+	message := "invalid authentication cdentials"
 	app.errorResponse(w, r, http.StatusUnauthorized, message)
 }
 
@@ -85,4 +85,11 @@ func (app *application) invactiveAccountResponse(w http.ResponseWriter, r *http.
 func (app *application) notPermittedResponse(w http.ResponseWriter, r *http.Request) {
 	messsage := "your user account doesn't have the necessary permissions to access this resource"
 	app.errorResponse(w, r, http.StatusForbidden, messsage)
+}
+
+func (app *application) violateUniqueConstraint(w http.ResponseWriter, r *http.Request, err error) {
+	app.logError(r, err)
+
+	messsage := "duplicate key value violates unique constraint"
+	app.errorResponse(w, r, http.StatusConflict, messsage)
 }

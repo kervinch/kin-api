@@ -160,8 +160,8 @@ func (m InboxModel) GetAPI(p Pagination, user *User) ([]*Inbox, Metadata, error)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-
 	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Preload("InboxUser").Order("created_at DESC").Find(&inbox).Error
+
 	if err != nil {
 		return nil, Metadata{}, err
 	}

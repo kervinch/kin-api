@@ -68,8 +68,12 @@ func (m ProductStorefrontSubscriptionModel) InsertWithTx(productID int64, storef
 
 		err = tx.WithContext(ctx).Create(&pss).Error
 		if err != nil {
-			// add duplicate entry error for unique column
-			break
+			switch {
+			case err.Error() == `pq: duplicate key value violates unique constraint "idx_product_storefront"`:
+				return ErrDuplicateKeyValue
+			default:
+				return err
+			}
 		}
 	}
 

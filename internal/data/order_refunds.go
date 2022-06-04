@@ -12,6 +12,7 @@ import (
 type OrderRefund struct {
 	ID            int64       `json:"id"`
 	UserID        int64       `json:"user_id"`
+	GormUser      GormUser    `json:"user" gorm:"foreignKey:UserID"`
 	OrderDetailID int64       `json:"order_detail_id"`
 	OrderDetail   OrderDetail `json:"order_detail"`
 	BrandID       int64       `json:"brand_id"`
@@ -46,7 +47,7 @@ func (m OrderRefundModel) GetAll(p Pagination) ([]*OrderRefund, Metadata, error)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Preload("OrderDetail.Order.Voucher").Preload("Brand").Order("created_at DESC").Find(&orderRefund).Error
+	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Preload("OrderDetail.Order.Voucher").Preload("Brand").Preload("GormUser").Order("created_at DESC").Find(&orderRefund).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
@@ -67,7 +68,7 @@ func (m OrderRefundModel) Get(id int64) (*OrderRefund, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Preload("OrderDetail.Order.Voucher").Preload("Brand").Where("id = ?", id).First(&orderRefund).Error
+	err := m.DB.WithContext(ctx).Preload("OrderDetail.Order.Voucher").Preload("Brand").Preload("GormUser").Where("id = ?", id).First(&orderRefund).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -103,7 +104,7 @@ func (m OrderRefundModel) GetAPI(p Pagination, user *User) ([]*OrderRefund, Meta
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Preload("OrderDetail.Order.Voucher").Preload("Brand").Where("user_id = ?", user.ID).Order("created_at DESC").Find(&orderRefund).Error
+	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Preload("OrderDetail.Order.Voucher").Preload("Brand").Preload("GormUser").Where("user_id = ?", user.ID).Order("created_at DESC").Find(&orderRefund).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}

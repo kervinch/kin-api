@@ -62,7 +62,12 @@ func (app *application) createFavoriteHandler(w http.ResponseWriter, r *http.Req
 
 	err = app.gorm.Favorites.Insert(favorite)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrDuplicateKeyValue):
+			app.violateUniqueConstraint(w, r, err)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

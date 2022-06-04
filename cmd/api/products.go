@@ -143,7 +143,12 @@ func (app *application) createProductHandler(w http.ResponseWriter, r *http.Requ
 	err = app.gorm.ProductStorefrontSubscriptions.InsertWithTx(productID, storefrontID, tx)
 	if err != nil {
 		tx.Rollback()
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrDuplicateKeyValue):
+			app.violateUniqueConstraint(w, r, err)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

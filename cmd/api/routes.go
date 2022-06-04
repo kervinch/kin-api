@@ -186,6 +186,11 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPut, "/cms/storefronts/:id", app.updateStorefrontHandler)
 	router.HandlerFunc(http.MethodDelete, "/cms/storefronts/:id", app.deleteStorefrontHandler)
 
+	// User Vouchers
+	router.HandlerFunc(http.MethodGet, "/cms/user-vouchers", app.listUserVouchersHandler)
+	router.HandlerFunc(http.MethodGet, "/cms/user-vouchers/:id", app.showUserVoucherHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/user-vouchers", app.createUserVoucherHandler)
+
 	// ====================================================================================
 	// Miscellaneous Routes
 	// ====================================================================================

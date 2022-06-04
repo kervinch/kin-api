@@ -274,7 +274,16 @@ func (app *application) getInboxBySlugHandler(w http.ResponseWriter, r *http.Req
 		IsRead:  true,
 	}
 
-	app.gorm.InboxUsers.Insert(inboxUser)
+	err = app.gorm.InboxUsers.Insert(inboxUser)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrDuplicateKeyValue):
+			app.violateUniqueConstraint(w, r, err)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
 
 	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), inbox, nil)
 	if err != nil {

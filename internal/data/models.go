@@ -8,14 +8,16 @@ import (
 )
 
 var (
-	ErrRecordNotFound = errors.New("record not found")
-	ErrEditConflict   = errors.New("edit conflict")
-	ErrDuplicateSlug  = errors.New("duplicate slug")
-	ErrInvalidEnum    = errors.New("invalid enum value")
-	ErrBadRequest     = errors.New("bad request")
-	ErrImageFormat    = errors.New("unknown image format")
-	ErrVideoFormat    = errors.New("unknown video format")
-	ErrOutOfStock     = errors.New("out of stock")
+	ErrRecordNotFound    = errors.New("record not found")
+	ErrEditConflict      = errors.New("edit conflict")
+	ErrDuplicateSlug     = errors.New("duplicate slug")
+	ErrDuplicateKeyValue = errors.New("violates unique constraint")
+	ErrInvalidEnum       = errors.New("invalid enum value")
+	ErrBadRequest        = errors.New("bad request")
+	ErrImageFormat       = errors.New("unknown image format")
+	ErrVideoFormat       = errors.New("unknown video format")
+	ErrOutOfStock        = errors.New("out of stock")
+	ErrOutOfQuantity     = errors.New("out of quantity")
 )
 
 type TransactionModel struct {
@@ -38,6 +40,7 @@ type Gorm struct {
 	BlogCategories                 BlogCategoryModel
 	Carts                          CartModel
 	Favorites                      FavoriteModel
+	GormUsers                      GormUserModel
 	Inbox                          InboxModel
 	InboxUsers                     InboxUserModel
 	InvoiceDetails                 InvoiceDetailModel
@@ -54,6 +57,7 @@ type Gorm struct {
 	ProductStorefrontSubscriptions ProductStorefrontSubscriptionModel
 	Storefronts                    StorefrontModel
 	UserAddresses                  UserAddressModel
+	UserVouchers                   UserVoucherModel
 	Vouchers                       VoucherModel
 }
 
@@ -76,6 +80,7 @@ func GormModels(db *gorm.DB) Gorm {
 		BlogCategories:                 BlogCategoryModel{DB: db},
 		Carts:                          CartModel{DB: db},
 		Favorites:                      FavoriteModel{DB: db},
+		GormUsers:                      GormUserModel{DB: db},
 		Inbox:                          InboxModel{DB: db},
 		InboxUsers:                     InboxUserModel{DB: db},
 		InvoiceDetails:                 InvoiceDetailModel{DB: db},
@@ -92,6 +97,7 @@ func GormModels(db *gorm.DB) Gorm {
 		ProductStorefrontSubscriptions: ProductStorefrontSubscriptionModel{DB: db},
 		Storefronts:                    StorefrontModel{DB: db},
 		UserAddresses:                  UserAddressModel{DB: db},
+		UserVouchers:                   UserVoucherModel{DB: db},
 		Vouchers:                       VoucherModel{DB: db},
 	}
 }

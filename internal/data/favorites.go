@@ -12,6 +12,7 @@ import (
 type Favorite struct {
 	ID              int64         `json:"id"`
 	UserID          int64         `json:"user_id"`
+	GormUser        GormUser      `json:"user" gorm:"foreignKey:UserID"`
 	ProductDetail   ProductDetail `json:"product_detail"`
 	ProductDetailID int64         `json:"product_detail_id"`
 	CreatedAt       time.Time     `json:"-"`
@@ -79,6 +80,14 @@ func (m FavoriteModel) Insert(favorite *Favorite) error {
 	defer cancel()
 
 	err := m.DB.WithContext(ctx).Create(&favorite).Error
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "idx_favorites"`:
+			return ErrDuplicateKeyValue
+		default:
+			return err
+		}
+	}
 
 	return err
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/kervinch/internal/validator"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 var (
@@ -29,6 +30,27 @@ type User struct {
 	Gender      string    `json:"gender"`
 	DateOfBirth time.Time `json:"date_of_birth"`
 	PhoneNumber string    `json:"phone_number"`
+}
+
+type GormUser struct {
+	ID          int64     `json:"id"`
+	CreatedAt   time.Time `json:"created_at"`
+	Name        string    `json:"name"`
+	Email       string    `json:"email"`
+	Activated   bool      `json:"activated"`
+	Version     int       `json:"version"`
+	Role        string    `json:"role,omitempty"`
+	Gender      string    `json:"gender"`
+	DateOfBirth time.Time `json:"date_of_birth"`
+	PhoneNumber string    `json:"phone_number"`
+}
+
+type GormUserModel struct {
+	DB *gorm.DB
+}
+
+func (GormUser) TableName() string {
+	return "users"
 }
 
 func (u *User) IsAnonymous() bool {

@@ -7,6 +7,9 @@ CREATE TABLE IF NOT EXISTS user_vouchers (
   updated_at timestamp(0) with time zone NOT NULL DEFAULT NOW()
 );
 
+CREATE UNIQUE INDEX idx_user_vouchers
+ON user_vouchers(user_id, voucher_id);
+
 CREATE TRIGGER update_user_vouchers_updated_at BEFORE UPDATE
     ON user_vouchers FOR EACH ROW EXECUTE PROCEDURE 
     update_updated_at_column();
