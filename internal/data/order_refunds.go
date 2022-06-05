@@ -22,6 +22,9 @@ type OrderRefund struct {
 	Image3        string      `json:"image_3" gorm:"column:image_1"`
 	Video         string      `json:"video"`
 	Explanation   string      `json:"explanation"`
+	Status        string      `json:"status"`
+	ReceiptNumber string      `json:"receipt_number"`
+	RefundValue   int64       `json:"refund_value"`
 	CreatedAt     time.Time   `json:"-"`
 	UpdatedAt     time.Time   `json:"-"`
 }
@@ -117,4 +120,97 @@ func (m OrderRefundModel) GetAPI(p Pagination, user *User) ([]*OrderRefund, Meta
 	metadata := calculateMetadata(int(count), p.Page, p.PageSize)
 
 	return orderRefund, metadata, nil
+}
+
+func (m OrderRefundModel) UpdateStatus(or *OrderRefund, status string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var orderRefund *OrderRefund
+
+	err := m.DB.WithContext(ctx).First(&orderRefund, or.ID).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+
+	orderRefund.Status = status
+
+	err = m.DB.WithContext(ctx).Save(&orderRefund).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m OrderRefundModel) UpdateReceiptNumber(or *OrderRefund, receiptNumber string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var orderRefund *OrderRefund
+
+	err := m.DB.WithContext(ctx).First(&orderRefund, or.ID).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+
+	orderRefund.ReceiptNumber = receiptNumber
+
+	err = m.DB.WithContext(ctx).Save(&orderRefund).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m OrderRefundModel) UpdateRefundValue(or *OrderRefund, refundValue int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var orderRefund *OrderRefund
+
+	err := m.DB.WithContext(ctx).First(&orderRefund, or.ID).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+
+	orderRefund.RefundValue = refundValue
+
+	err = m.DB.WithContext(ctx).Save(&orderRefund).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
 }

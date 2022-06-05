@@ -157,6 +157,9 @@ func (app *application) routes() http.Handler {
 	// Order Refunds
 	router.HandlerFunc(http.MethodGet, "/cms/order-refunds", app.listOrderRefundsHandler)
 	router.HandlerFunc(http.MethodGet, "/cms/order-refunds/:id", app.showOrderRefundHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/order-refunds/:id/status", app.updateOrderRefundStatusHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/order-refunds/:id/receipt-number", app.updateOrderRefundReceiptNumberHandler)
+	router.HandlerFunc(http.MethodPut, "/cms/order-refunds/:id/refund-value", app.updateOrderRefundRefundValueHandler)
 
 	// Products
 	router.HandlerFunc(http.MethodGet, "/cms/products", app.listProductsHandler)
