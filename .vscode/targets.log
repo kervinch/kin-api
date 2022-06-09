@@ -5,22 +5,20 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
- 
 # This program built for i386-apple-darwin11.3.0
  
 make: *** No rule to make target `all'.  Stop.
 
 
-# Make data base, printed on Thu Jun  9 08:52:06 2022
+# Make data base, printed on Thu Jun  9 16:57:56 2022
 
 # Variables
 
 # automatic
- 
 <D = $(patsubst %/,%,$(dir $<))
 # automatic
 ?F = $(notdir $?)
-# makefile (from `.envrc', line 6)
+# makefile (from `.envrc', line 7)
 AWS_SECRET_ACCESS_KEY = CYhNZQDDF0jC3clbnv9QXiaXTZZtjPEfpx0zkRDJ
 # environment
 VSCODE_LOG_NATIVE = false
@@ -49,7 +47,7 @@ __CFBundleIdentifier = com.microsoft.VSCode
 # environment
 INFOPATH = /opt/homebrew/share/info:
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/48/vg8936dx17j9pqslg2hm5h_c0000gn/T/vscode-ipc-46e72eda-32a2-48f7-b293-09b023625a4d.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/48/vg8936dx17j9pqslg2hm5h_c0000gn/T/vscode-ipc-40330290-a2e8-42be-b270-710a13f5a818.sock
 # environment
 VSCODE_CWD = /
 # environment
@@ -115,9 +113,8 @@ USER = kervin
 # makefile
 .DEFAULT_GOAL := help
 # automatic
- 
 %D = $(patsubst %/,%,$(dir $%))
-# makefile (from `.envrc', line 5)
+# makefile (from `.envrc', line 6)
 AWS_ACCESS_KEY_ID = AKIAVQAV2PVA3CNQPVLQ
 # default
 MAKE_COMMAND := /Library/Developer/CommandLineTools/usr/bin/make
@@ -153,7 +150,7 @@ __CF_USER_TEXT_ENCODING = 0x1F5:0x0:0x0
 COMMAND_MODE = unix2003
 # default
 MAKEFILES := 
-# makefile (from `.envrc', line 7)
+# makefile (from `.envrc', line 9)
 XENDIT_SECRET_KEY = xnd_development_AnLB9xJzczQCzNW2CVUkcsJc45AdACSuWrHJEXLt0qpl4kj4ZjC78rPjgODudsq3
 # automatic
 <F = $(notdir $<)
@@ -167,7 +164,7 @@ production_host_ip = 'ec2-54-151-175-100.ap-southeast-1.compute.amazonaws.com'
 SUFFIXES := 
 # default
 .INCLUDE_DIRS = /usr/local/include
-# makefile (from `.envrc', line 4)
+# makefile (from `.envrc', line 5)
 AWS_REGION = ap-southeast-1
 # environment
 MAKELEVEL := 0
@@ -175,8 +172,10 @@ MAKELEVEL := 0
 LANG = C
 # environment
 VSCODE_PID = 1272
+# makefile (from `.envrc', line 10)
+XENDIT_CALLBACK_VERIFICATION_TOKEN = b8f54fc11fafd8b69cb9bb4f37c2be27307a7e30a91e8a477a3986fadd672967
 # variable set hash-table stats:
-# Load=79/1024=8%, Rehash=0, Collisions=4/105=4%
+# Load=80/1024=8%, Rehash=0, Collisions=4/106=4%
 
 # Pattern-specific Variable Values
 
@@ -192,7 +191,6 @@ VSCODE_PID = 1272
 
 # No implicit rules.
 
- 
 # Files
 
 # Not a target:
@@ -302,6 +300,7 @@ db/psql:
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
+ 
 #  commands to execute (from `Makefile', line 29):
 	psql ${DB_DSN}
 	
@@ -319,7 +318,7 @@ db/migrations/up: confirm
 # Not a target:
 .envrc:
 #  Implicit rule search has been done.
-#  Last modified 2022-06-06 09:33:23
+#  Last modified 2022-06-09 10:28:40
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
@@ -370,6 +369,6 @@ vendor:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4080 / max = 4080 / min = 4080 / avg = 4080
 
-# Finished Make data base on Thu Jun  9 08:52:06 2022
+# Finished Make data base on Thu Jun  9 16:57:56 2022
 
  

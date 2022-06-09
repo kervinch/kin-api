@@ -47,18 +47,18 @@ func (app *application) invoiceCallbackHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), envelope{"external_id": callbackPayload.ExternalID}, headers)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
-
-	return
-
 	orderID, err := strconv.ParseInt(callbackPayload.ExternalID, 10, 64)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), envelope{"external_id": orderID}, headers)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+
+	return
 
 	order, err := app.gorm.Orders.Get(orderID)
 	if err != nil {
