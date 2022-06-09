@@ -1,8 +1,13 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
+
+	"github.com/kervinch/internal/data"
 )
 
 // ====================================================================================
@@ -42,45 +47,40 @@ func (app *application) invoiceCallbackHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), envelope{"orderID": callbackPayload.ID}, headers)
+	orderID, err := strconv.ParseInt(callbackPayload.ExternalID, 10, 64)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	order, err := app.gorm.Orders.Get(orderID)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	order.Status = strings.ToLower(callbackPayload.Status)
+
+	err = app.gorm.Orders.Update(order)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), envelope{"order_id": orderID}, headers)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
-
-	// orderID, err := strconv.ParseInt(callbackPayload.ExternalID, 10, 64)
-	// if err != nil {
-	// 	app.badRequestResponse(w, r, err)
-	// 	return
-	// }
-
-	// order, err := app.gorm.Orders.Get(orderID)
-	// if err != nil {
-	// 	switch {
-	// 	case errors.Is(err, data.ErrRecordNotFound):
-	// 		app.notFoundResponse(w, r)
-	// 	default:
-	// 		app.serverErrorResponse(w, r, err)
-	// 	}
-	// 	return
-	// }
-
-	// order.Status = strings.ToLower(callbackPayload.Status)
-
-	// err = app.gorm.Orders.Update(order)
-	// if err != nil {
-	// 	switch {
-	// 	case errors.Is(err, data.ErrRecordNotFound):
-	// 		app.notFoundResponse(w, r)
-	// 	default:
-	// 		app.serverErrorResponse(w, r, err)
-	// 	}
-	// 	return
-	// }
-
-	// err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), order, headers)
-	// if err != nil {
-	// 	app.serverErrorResponse(w, r, err)
-	// }
 }
 
 func (app *application) testInvoiceCallbackHandler(w http.ResponseWriter, r *http.Request) {
