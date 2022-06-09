@@ -58,7 +58,6 @@ func (app *application) routes() http.Handler {
 
 	// Callbacks
 	router.HandlerFunc(http.MethodPost, "/api/invoice/callback", app.invoiceCallbackHandler)
-	router.HandlerFunc(http.MethodPost, "/invoice_callback_url", app.testInvoiceCallbackHandler)
 
 	// Carts
 	router.HandlerFunc(http.MethodGet, "/api/carts", app.requireAuthenticatedUser(app.getCartsHandler))
