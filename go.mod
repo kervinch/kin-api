@@ -9,6 +9,7 @@ require (
 	github.com/gosimple/slug v1.12.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.4
+	github.com/xendit/xendit-go v1.0.8
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	golang.org/x/exp v0.0.0-20220428152302-39d4317da171
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11
@@ -17,6 +18,9 @@ require (
 )
 
 require (
+	github.com/go-playground/locales v0.13.0 // indirect
+	github.com/go-playground/universal-translator v0.17.0 // indirect
+	github.com/go-playground/validator/v10 v10.2.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.11.0 // indirect
@@ -29,6 +33,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/leodido/go-urn v1.2.0 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/text v0.3.7 // indirect
 )

@@ -1,4 +1,4 @@
-CREATE TYPE orders_status_enum AS ENUM ('awaiting_payment', 'paid', 'pending', 'processing', 'delivery' 'completed', 'refund_requested', 'refund_rejected', 'refund_completed');
+CREATE TYPE orders_status_enum AS ENUM ('awaiting_payment', 'expired', 'paid', 'pending', 'processing', 'delivery' 'completed', 'refund_requested', 'refund_rejected', 'refund_completed');
 
 CREATE TABLE IF NOT EXISTS orders (
   id bigserial PRIMARY KEY,

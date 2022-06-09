@@ -56,6 +56,9 @@ func (app *application) routes() http.Handler {
 	// Brands
 	router.HandlerFunc(http.MethodGet, "/api/brands", app.getBrandsHandler)
 
+	// Callbacks
+	router.HandlerFunc(http.MethodPost, "/api/invoice/callback", app.invoiceCallbackHandler)
+
 	// Carts
 	router.HandlerFunc(http.MethodGet, "/api/carts", app.requireAuthenticatedUser(app.getCartsHandler))
 	router.HandlerFunc(http.MethodPost, "/api/carts", app.requireAuthenticatedUser(app.createCartHandler))

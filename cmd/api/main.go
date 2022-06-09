@@ -19,6 +19,7 @@ import (
 	"github.com/kervinch/internal/jsonlog"
 	"github.com/kervinch/internal/mailer"
 	"github.com/kervinch/internal/s3"
+	"github.com/kervinch/internal/xendit"
 
 	_ "github.com/lib/pq"
 )
@@ -67,6 +68,7 @@ type application struct {
 	mailer mailer.Mailer
 	wg     sync.WaitGroup
 	s3     s3.S3
+	xendit xendit.Xendit
 }
 
 func main() {
@@ -137,6 +139,7 @@ func main() {
 		gorm:   data.GormModels(gorm),
 		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 		s3:     s3.New("kin-public"),
+		xendit: xendit.New(os.Getenv("XENDIT_SECRET_KEY")),
 	}
 
 	err = app.serve()

@@ -205,8 +205,6 @@ func (m VoucherModel) Consume(id int64) error {
 		return ErrOutOfStock
 	}
 
-	voucher.BrandID = sql.NullInt64{}
-	voucher.LogisticID = sql.NullInt64{}
 	voucher.Stock = voucher.Stock - 1
 
 	err = m.DB.WithContext(ctx).Save(&voucher).Error

@@ -36,6 +36,7 @@ func ValidateOrder(v *validator.Validator, order *Order) {
 	v.Check(order.City != "", "city", "must be provided")
 	v.Check(order.PostalCode != "", "postal_code", "must be provided")
 	v.Check(order.Address != "", "address", "must be provided")
+	v.Check(validator.In(order.Status, "awaiting_payment", "expired", "paid", "pending", "processing", "delivery", "completed", "refund_requested", "refund_rejected", "refund_completed"), "status", "must be valid to enum defined")
 }
 
 type OrderModel struct {
@@ -242,6 +243,37 @@ func (m OrderModel) SetTotalWithVoucherAndTx(id int64, subtotal int64, voucherID
 	order.Total = total
 
 	err = tx.WithContext(ctx).Save(&order).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m OrderModel) UpdateStatus(id int64, status string) error {
+	var order *Order
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).First(&order, id).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+
+	order.Status = status
+
+	err = m.DB.WithContext(ctx).Save(&order).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):

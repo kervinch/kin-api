@@ -93,3 +93,10 @@ func (app *application) violateUniqueConstraint(w http.ResponseWriter, r *http.R
 	messsage := "duplicate key value violates unique constraint"
 	app.errorResponse(w, r, http.StatusConflict, messsage)
 }
+
+func (app *application) failedInvoiceResponse(w http.ResponseWriter, r *http.Request, err error) {
+	app.logError(r, err)
+
+	messsage := "xendit generate invoice error"
+	app.errorResponse(w, r, http.StatusFailedDependency, messsage)
+}

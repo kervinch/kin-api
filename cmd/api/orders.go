@@ -7,6 +7,7 @@ import (
 
 	"github.com/kervinch/internal/data"
 	"github.com/kervinch/internal/validator"
+	"github.com/xendit/xendit-go"
 )
 
 // ====================================================================================
@@ -100,6 +101,13 @@ func (app *application) createOrdersHandler(w http.ResponseWriter, r *http.Reque
 
 	user := app.contextGetUser(r)
 
+	var x struct {
+		Customer        xendit.InvoiceCustomer
+		CustomerAddress xendit.CustomerAddress
+		InvoiceItem     []xendit.InvoiceItem
+		InvoiceFee      []xendit.InvoiceFee
+	}
+
 	// =============
 	// Product Logic
 	// =============
@@ -129,6 +137,20 @@ func (app *application) createOrdersHandler(w http.ResponseWriter, r *http.Reque
 		tx.Rollback()
 		app.serverErrorResponse(w, r, err)
 		return
+	}
+
+	x.Customer = xendit.InvoiceCustomer{
+		GivenNames:   user.Name,
+		Email:        user.Email,
+		MobileNumber: user.PhoneNumber,
+		Address:      r.FormValue("address"),
+	}
+
+	x.CustomerAddress = xendit.CustomerAddress{
+		Country:     "Indonesia",
+		StreetLine1: r.FormValue("address"),
+		City:        r.FormValue("city"),
+		PostalCode:  r.FormValue("postal_code"),
 	}
 
 	// =============
@@ -243,6 +265,15 @@ func (app *application) createOrdersHandler(w http.ResponseWriter, r *http.Reque
 					app.serverErrorResponse(w, r, err)
 					return
 				}
+
+				// Xendit InvoiceItem logic
+				invoiceItem := xendit.InvoiceItem{
+					Name:     input.ProductDetail[i].Product.Name,
+					Price:    float64(input.ProductDetail[i].Price),
+					Quantity: input.Quantity[i],
+				}
+
+				x.InvoiceItem = append(x.InvoiceItem, invoiceItem)
 			}
 		}
 	}
@@ -305,6 +336,14 @@ func (app *application) createOrdersHandler(w http.ResponseWriter, r *http.Reque
 			} else {
 				total = subtotal - voucher.Value
 			}
+
+			// Xendit InvoiceFee logic
+			invoiceFee := xendit.InvoiceFee{
+				Type:  "discount",
+				Value: float64((subtotal - total) * -1),
+			}
+
+			x.InvoiceFee = append(x.InvoiceFee, invoiceFee)
 
 			err = app.gorm.OrderDetails.SetTotalWithVoucherAndTx(od.ID, int64(subtotal), voucher.ID, int64(total), tx)
 			if err != nil {
@@ -381,7 +420,15 @@ func (app *application) createOrdersHandler(w http.ResponseWriter, r *http.Reque
 
 	tx.Commit()
 
-	err = app.writeJSON(w, http.StatusCreated, http.StatusText(http.StatusCreated), order, nil)
+	// Generate Xendit invoice
+	notificationType := []string{"email", "sms"}
+	invoice, err := app.xendit.GenerateInvoice(orderID, x.Customer, x.CustomerAddress, x.InvoiceItem, x.InvoiceFee, notificationType, total)
+	if err != nil {
+		app.failedInvoiceResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusCreated, http.StatusText(http.StatusCreated), envelope{"order": order, "invoice": invoice}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

@@ -31,6 +31,7 @@ func ValidateOrderDetail(v *validator.Validator, orderDetail *OrderDetail) {
 	v.Check(orderDetail.OrderID != 0, "order_id", "must be not be zero")
 	v.Check(orderDetail.BrandID != 0, "brand_id", "must be provided")
 	v.Check(orderDetail.InvoiceNumber != "", "invoice_number", "must be provided")
+	v.Check(validator.In(orderDetail.Status, "awaiting_payment", "expired", "paid", "pending", "processing", "delivery", "completed", "refund_requested", "refund_rejected", "refund_completed"), "status", "must be valid to enum defined")
 }
 
 type OrderDetailModel struct {
@@ -191,6 +192,23 @@ func (m OrderDetailModel) SetTotalWithVoucherAndTx(id int64, subtotal int64, vou
 	orderDetail.Total = total
 
 	err = tx.WithContext(ctx).Save(&orderDetail).Error
+	if err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m OrderDetailModel) UpdateStatusByOrderID(orderID int64, status string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.WithContext(ctx).Model(&OrderDetail{}).Where("order_id = ?", orderID).Update("status", status).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
