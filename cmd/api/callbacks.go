@@ -27,7 +27,7 @@ func (app *application) invoiceCallbackHandler(w http.ResponseWriter, r *http.Re
 		Status                 string  `json:"status"`
 		MerchantName           string  `json:"merchant_name"`
 		Amount                 float64 `json:"amount"`
-		PaidAmount             float64 `json:"50000"`
+		PaidAmount             float64 `json:"paid_amount"`
 		BankCode               string  `json:"bank_code"`
 		PaidAt                 string  `json:"paid_at"`
 		PayerEmail             string  `json:"payer_email"`
