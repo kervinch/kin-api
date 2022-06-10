@@ -28,13 +28,13 @@ func (app *application) invoiceCallbackHandler(w http.ResponseWriter, r *http.Re
 		Status                       string                      `json:"status,omitempty"`
 		MerchantName                 string                      `json:"merchant_name,omitempty"`
 		Amount                       int                         `json:"amount,omitempty"`
-		PaidAmount                   float64                     `json:"paid_amount,omitempty"`
-		BankCode                     int                         `json:"bank_code,omitempty"`
+		PaidAmount                   int                         `json:"paid_amount,omitempty"`
+		BankCode                     string                      `json:"bank_code,omitempty"`
 		PaidAt                       string                      `json:"paid_at,omitempty"`
 		PayerEmail                   string                      `json:"payer_email,omitempty"`
 		Description                  string                      `json:"description,omitempty"`
-		AdjustedReceivedAmount       float64                     `json:"adjusted_received_amount,omitempty"`
-		FeesPaidAmount               float64                     `json:"fees_paid_amount,omitempty"`
+		AdjustedReceivedAmount       int                         `json:"adjusted_received_amount,omitempty"`
+		FeesPaidAmount               int                         `json:"fees_paid_amount,omitempty"`
 		Updated                      string                      `json:"updated,omitempty"`
 		Created                      string                      `json:"created,omitempty"`
 		Currency                     string                      `json:"currency,omitempty"`
