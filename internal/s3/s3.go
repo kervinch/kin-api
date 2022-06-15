@@ -24,6 +24,7 @@ const (
 	PRODUCT_CATEGORY = "product_categories/"
 	PRODUCT_REFUND   = "product_refunds/"
 	STOREFRONT       = "storefronts/"
+	VOUCHER          = "vouchers/"
 )
 
 type S3 struct {

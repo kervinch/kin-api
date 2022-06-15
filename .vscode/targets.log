@@ -10,7 +10,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target `all'.  Stop.
 
 
-# Make data base, printed on Fri Jun 10 14:18:18 2022
+# Make data base, printed on Tue Jun 14 19:35:41 2022
 
 # Variables
 
@@ -29,7 +29,6 @@ VSCODE_LOG_NATIVE = false
 # automatic
 @F = $(notdir $@)
 # makefile
- 
 CURDIR := /Users/kervin/Documents/kin-api
 # makefile
 SHELL = /bin/sh
@@ -48,7 +47,7 @@ __CFBundleIdentifier = com.microsoft.VSCode
 # environment
 INFOPATH = /opt/homebrew/share/info:
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/48/vg8936dx17j9pqslg2hm5h_c0000gn/T/vscode-ipc-eb62f723-cdf0-4a7c-98ba-e8e2968f2bc0.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/48/vg8936dx17j9pqslg2hm5h_c0000gn/T/vscode-ipc-e2ea059a-d5ef-411e-b82a-6becfbb36b6f.sock
 # environment
 VSCODE_CWD = /
 # environment
@@ -70,7 +69,7 @@ ELECTRON_RUN_AS_NODE = 1
 # makefile (from `.envrc', line 3)
 DB_DSN = "postgres://root:vrwYlxDa0mxM@kin-production.cc5yxrwtsz6l.ap-southeast-1.rds.amazonaws.com:5432/kin"
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.RwHJ6a7hfi/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.UmT6h0t6YT/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
@@ -172,10 +171,11 @@ MAKELEVEL := 0
 # environment
 LANG = C
 # environment
-VSCODE_PID = 1308
+VSCODE_PID = 6564
 # makefile (from `.envrc', line 10)
 XENDIT_CALLBACK_VERIFICATION_TOKEN = b8f54fc11fafd8b69cb9bb4f37c2be27307a7e30a91e8a477a3986fadd672967
 # variable set hash-table stats:
+ 
 # Load=80/1024=8%, Rehash=0, Collisions=4/106=4%
 
 # Pattern-specific Variable Values
@@ -184,7 +184,7 @@ XENDIT_CALLBACK_VERIFICATION_TOKEN = b8f54fc11fafd8b69cb9bb4f37c2be27307a7e30a91
 
 # Directories
 
-# . (device 16777232, inode 2988838): 18 files, no impossibilities.
+# . (device 16777234, inode 2988838): 18 files, no impossibilities.
 
 # 18 files, no impossibilities in 1 directories.
 
@@ -317,7 +317,6 @@ db/migrations/up: confirm
 
 # Not a target:
 .envrc:
- 
 #  Implicit rule search has been done.
 #  Last modified 2022-06-09 10:28:40
 #  File has been updated.
@@ -341,6 +340,7 @@ run/api:
 #  File does not exist.
 #  File has not been updated.
 #  commands to execute (from `Makefile', line 24):
+ 
 	go run ./cmd/api -db-dsn=${DB_DSN}
 	
 
@@ -370,6 +370,6 @@ vendor:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4080 / max = 4080 / min = 4080 / avg = 4080
 
-# Finished Make data base on Fri Jun 10 14:18:18 2022
+# Finished Make data base on Tue Jun 14 19:35:41 2022
 
  

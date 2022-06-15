@@ -11,9 +11,9 @@ import (
 )
 
 type Order struct {
-	ID     int64 `json:"id"`
-	UserID int64 `json:"user_id"`
-	// User        User          `json:"user"`
+	ID          int64         `json:"id"`
+	UserID      int64         `json:"user_id"`
+	GormUser    GormUser      `json:"user" gorm:"foreignKey:UserID"`
 	Receiver    string        `json:"receiver"`
 	PhoneNumber string        `json:"phone_number"`
 	City        string        `json:"city"`
@@ -54,7 +54,7 @@ func (m OrderModel) GetAll(p Pagination) ([]*Order, Metadata, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Preload("Voucher").Order("created_at DESC").Find(&order).Error
+	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Preload("Voucher").Preload("GormUser").Order("created_at DESC").Find(&order).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
@@ -75,7 +75,7 @@ func (m OrderModel) Get(id int64) (*Order, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Where("id = ?", id).First(&order).Error
+	err := m.DB.WithContext(ctx).Where("id = ?", id).Preload("Voucher").Preload("GormUser").First(&order).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -131,7 +131,7 @@ func (m OrderModel) GetAPI(p Pagination, userID int64, statusType string) ([]*Or
 	defer cancel()
 
 	if statusType == "" {
-		err := m.DB.WithContext(ctx).Preload("Voucher").Scopes(Paginate(p)).Where("user_id = ?", userID).Order("created_at DESC").Find(&orders).Error
+		err := m.DB.WithContext(ctx).Preload("Voucher").Preload("GormUser").Scopes(Paginate(p)).Where("user_id = ?", userID).Order("created_at DESC").Find(&orders).Error
 		if err != nil {
 			return nil, Metadata{}, err
 		}

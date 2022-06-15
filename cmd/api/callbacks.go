@@ -94,6 +94,18 @@ func (app *application) invoiceCallbackHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	app.background(func() {
+		data := map[string]interface{}{
+			"orderID": orderID,
+		}
+
+		app.logger.PrintInfo(order.GormUser.Email, nil)
+		err = app.mailer.Send(order.GormUser.Email, "Thank you for shopping with KIN!", "payment_completed.tmpl", data)
+		if err != nil {
+			app.logger.PrintError(err, nil)
+		}
+	})
+
 	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), envelope{"order_id": orderID, "status": order.Status}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)

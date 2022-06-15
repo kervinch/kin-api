@@ -1,0 +1,36 @@
+{{define "subject"}}Thank you for shopping with KIN!{{end}}
+{{define "plainBody"}} 
+Hi,
+
+Thank you for shopping with KIN!
+
+We've received your payment and is processing your order immediately.
+
+For future reference, your order number is {{.orderID}}.
+
+Please contact us through KIN Support if you have any questions.
+
+Regards,
+
+The Kin Team
+{{end}}
+
+{{define "htmlBody"}} 
+<!doctype html> 
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body> 
+    <p>Hi,</p>
+    <p>Thank you for shopping with KIN!</p> 
+    <p>We've received your payment and is processing your order immediately.</p>
+    <p>For future reference, your order number is {{.orderID}}.</p>
+    <p>Please contact us through KIN Support if you have any questions.</p>
+    
+    <p>Regards,</p>
+    <p>The Kin Team</p>
+</body>
+</html> 
+{{end}}

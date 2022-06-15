@@ -16,6 +16,8 @@ type Voucher struct {
 	Name              string        `json:"name"`
 	Description       string        `json:"description"`
 	TermsAndCondition string        `json:"terms_and_condition"`
+	ImageURL          string        `json:"image_url"`
+	Slug              string        `json:"slug"`
 	BrandID           sql.NullInt64 `json:"brand_id"`
 	Brand             Brand         `json:"brand"`
 	LogisticID        sql.NullInt64 `json:"logistic_id"`
@@ -29,6 +31,8 @@ type Voucher struct {
 	ExpiredAt         time.Time     `json:"expired_at"`
 	CreatedAt         time.Time     `json:"-"`
 	UpdatedAt         time.Time     `json:"-"`
+	CreatedBy         int64         `json:"created_by"`
+	UpdatedBy         int64         `json:"updated_by"`
 }
 
 func ValidateVoucher(v *validator.Validator, voucher *Voucher) {
@@ -52,7 +56,7 @@ func (m VoucherModel) GetAll(p Pagination) ([]*Voucher, Metadata, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Order("created_at DESC").Find(&voucher).Error
+	err := m.DB.WithContext(ctx).Scopes(Paginate(p)).Preload("Brand").Preload("Logistic").Order("created_at DESC").Find(&voucher).Error
 	if err != nil {
 		return nil, Metadata{}, err
 	}
@@ -73,7 +77,7 @@ func (m VoucherModel) Get(id int64) (*Voucher, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.WithContext(ctx).Where("id = ?", id).First(&voucher).Error
+	err := m.DB.WithContext(ctx).Where("id = ?", id).Preload("Brand").Preload("Logistic").First(&voucher).Error
 	if err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
@@ -118,6 +122,7 @@ func (m VoucherModel) Update(v *Voucher) error {
 	voucher.Name = v.Name
 	voucher.Description = v.Description
 	voucher.TermsAndCondition = v.TermsAndCondition
+	voucher.ImageURL = v.ImageURL
 	voucher.BrandID = v.BrandID
 	voucher.LogisticID = v.LogisticID
 	voucher.Code = v.Code
@@ -125,6 +130,11 @@ func (m VoucherModel) Update(v *Voucher) error {
 	voucher.Value = v.Value
 	voucher.Stock = v.Stock
 	voucher.IsActive = v.IsActive
+	voucher.Slug = v.Slug
+	voucher.EffectiveAt = v.EffectiveAt
+	voucher.ExpiredAt = v.ExpiredAt
+	voucher.CreatedBy = v.CreatedBy
+	voucher.UpdatedBy = v.UpdatedBy
 
 	err = m.DB.Save(&voucher).Error
 	if err != nil {

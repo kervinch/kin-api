@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS vouchers (
   description text NOT NULL,
   terms_and_condition text NOT NULL,
   type vouchers_enum NOT NULL DEFAULT 'total',
+  image_url text,
+  slug text UNIQUE NOT NULL,
   brand_id bigint REFERENCES brands ON DELETE CASCADE,
   logistic_id bigint REFERENCES logistics ON DELETE CASCADE,
   code text NOT NULL,

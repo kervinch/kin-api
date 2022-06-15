@@ -395,6 +395,14 @@ func (app *application) createOrdersHandler(w http.ResponseWriter, r *http.Reque
 			total = subtotal - voucher.Value
 		}
 
+		// Xendit InvoiceFee logic
+		invoiceFee := xendit.InvoiceFee{
+			Type:  "discount",
+			Value: float64((subtotal - total) * -1),
+		}
+
+		x.InvoiceFee = append(x.InvoiceFee, invoiceFee)
+
 		err = app.gorm.Orders.SetTotalWithVoucherAndTx(o.ID, int64(subtotal), voucher.ID, int64(total), tx)
 		if err != nil {
 			tx.Rollback()
