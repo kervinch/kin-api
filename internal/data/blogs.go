@@ -12,7 +12,7 @@ import (
 type Blog struct {
 	ID             int64        `json:"id"`
 	BlogCategory   BlogCategory `json:"blog_category"`
-	BlogCategoryID int          `json:"blog_category_id"`
+	BlogCategoryID int64        `json:"blog_category_id"`
 	Thumbnail      string       `json:"thumbnail"`
 	Title          string       `json:"title"`
 	Description    string       `json:"description"`
@@ -23,7 +23,7 @@ type Blog struct {
 	Feature        bool         `json:"feature"`
 	Status         string       `json:"status"`
 	Tags           string       `json:"tags"`
-	CreatedBy      int          `json:"created_by"`
+	CreatedBy      int64        `json:"created_by"`
 	DeletedAt      time.Time    `json:"-"`
 	CreatedAt      time.Time    `json:"-"`
 	UpdatedAt      time.Time    `json:"-"`

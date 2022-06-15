@@ -64,6 +64,8 @@ func (app *application) showBlogHandler(w http.ResponseWriter, r *http.Request) 
 func (app *application) createBlogHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(data.DefaultMaxMemory)
 
+	user := app.contextGetUser(r)
+
 	file, handler, err := r.FormFile("thumbnail")
 	if err != nil {
 		app.fileNotFoundResponse(w, r, "thumbnail")
@@ -84,7 +86,7 @@ func (app *application) createBlogHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	blog := &data.Blog{
-		BlogCategoryID: blogCategoryId,
+		BlogCategoryID: int64(blogCategoryId),
 		Thumbnail:      url,
 		Title:          r.FormValue("title"),
 		Description:    r.FormValue("description"),
@@ -95,7 +97,7 @@ func (app *application) createBlogHandler(w http.ResponseWriter, r *http.Request
 		Feature:        r.FormValue("feature") == "true",
 		Status:         r.FormValue("status"),
 		Tags:           r.FormValue("tags"),
-		CreatedBy:      1,
+		CreatedBy:      user.ID,
 		CreatedByText:  "Admin",
 	}
 
@@ -167,7 +169,7 @@ func (app *application) updateBlogHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	blog.Thumbnail = url
-	blog.BlogCategoryID = blogCategoryId
+	blog.BlogCategoryID = int64(blogCategoryId)
 	blog.Title = r.FormValue("title")
 	blog.Description = r.FormValue("description")
 	blog.Content = r.FormValue("content")

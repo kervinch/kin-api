@@ -119,7 +119,7 @@ func (app *application) routes() http.Handler {
 	// Blogs
 	router.HandlerFunc(http.MethodGet, "/cms/blogs", app.listBlogsHandler)
 	router.HandlerFunc(http.MethodGet, "/cms/blogs/:id", app.showBlogHandler)
-	router.HandlerFunc(http.MethodPost, "/cms/blogs", app.createBlogHandler)
+	router.HandlerFunc(http.MethodPost, "/cms/blogs", app.requireAuthenticatedAdmin(app.createBlogHandler))
 	router.HandlerFunc(http.MethodPut, "/cms/blogs/:id", app.updateBlogHandler)
 	router.HandlerFunc(http.MethodDelete, "/cms/blogs/:id", app.deleteBlogHandler)
 
