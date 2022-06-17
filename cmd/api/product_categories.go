@@ -243,10 +243,8 @@ func (app *application) getProductCategoriesHandler(w http.ResponseWriter, r *ht
 		var e any
 		err := json.Unmarshal(entry, &e)
 		if err != nil {
-			if err != nil {
-				app.serverErrorResponse(w, r, err)
-				return
-			}
+			app.serverErrorResponse(w, r, err)
+			return
 		}
 
 		err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), e, nil)
