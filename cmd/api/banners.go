@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -202,11 +203,32 @@ func (app *application) deleteBannerHandler(w http.ResponseWriter, r *http.Reque
 // ====================================================================================
 
 func (app *application) getBannersHandler(w http.ResponseWriter, r *http.Request) {
+	entry, _ := app.cache.Get("GET_BANNERS_API")
+	if entry != nil {
+		var e any
+		err := json.Unmarshal(entry, &e)
+		if err != nil {
+			if err != nil {
+				app.serverErrorResponse(w, r, err)
+				return
+			}
+		}
+
+		err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), e, nil)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
 	banners, err := app.models.Banners.GetAPI()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+
+	b, _ := json.Marshal(banners)
+	app.cache.Set("GET_BANNERS_API", b)
 
 	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), banners, nil)
 	if err != nil {

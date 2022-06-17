@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -237,11 +238,32 @@ func (app *application) deleteProductCategoryHandler(w http.ResponseWriter, r *h
 // ====================================================================================
 
 func (app *application) getProductCategoriesHandler(w http.ResponseWriter, r *http.Request) {
+	entry, _ := app.cache.Get("GET_PRODUCT_CATEGORIES_API")
+	if entry != nil {
+		var e any
+		err := json.Unmarshal(entry, &e)
+		if err != nil {
+			if err != nil {
+				app.serverErrorResponse(w, r, err)
+				return
+			}
+		}
+
+		err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), e, nil)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
 	productCategories, err := app.gorm.ProductCategories.GetAPI()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+
+	pc, _ := json.Marshal(productCategories)
+	app.cache.Set("GET_PRODUCT_CATEGORIES_API", pc)
 
 	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), productCategories, nil)
 	if err != nil {

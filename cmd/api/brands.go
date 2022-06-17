@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -221,12 +222,32 @@ func (app *application) deleteBrandHandler(w http.ResponseWriter, r *http.Reques
 // ====================================================================================
 
 func (app *application) getBrandsHandler(w http.ResponseWriter, r *http.Request) {
-	brands, err := app.gorm.Brands.GetAPI()
+	entry, _ := app.cache.Get("GET_BRANDS_API")
+	if entry != nil {
+		var e any
+		err := json.Unmarshal(entry, &e)
+		if err != nil {
+			if err != nil {
+				app.serverErrorResponse(w, r, err)
+				return
+			}
+		}
 
+		err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), e, nil)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	brands, err := app.gorm.Brands.GetAPI()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+
+	b, _ := json.Marshal(brands)
+	app.cache.Set("GET_BRANDS_API", b)
 
 	err = app.writeJSON(w, http.StatusOK, http.StatusText(http.StatusOK), brands, nil)
 	if err != nil {

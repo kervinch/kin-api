@@ -10,7 +10,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target `all'.  Stop.
 
 
-# Make data base, printed on Tue Jun 14 19:35:41 2022
+# Make data base, printed on Thu Jun 16 10:17:02 2022
 
 # Variables
 
@@ -47,7 +47,7 @@ __CFBundleIdentifier = com.microsoft.VSCode
 # environment
 INFOPATH = /opt/homebrew/share/info:
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/48/vg8936dx17j9pqslg2hm5h_c0000gn/T/vscode-ipc-e2ea059a-d5ef-411e-b82a-6becfbb36b6f.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/48/vg8936dx17j9pqslg2hm5h_c0000gn/T/vscode-ipc-93367032-61ed-46e7-a747-686d1f42b047.sock
 # environment
 VSCODE_CWD = /
 # environment
@@ -89,7 +89,7 @@ HOME = /Users/kervin
 # default
 MAKEFILEPATH = $(shell /usr/bin/xcode-select -print-path 2>/dev/null || echo /Developer)/Makefiles
 # environment
-VSCODE_CODE_CACHE_PATH = /Users/kervin/Library/Application Support/Code/CachedData/c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5
+VSCODE_CODE_CACHE_PATH = /Users/kervin/Library/Application Support/Code/CachedData/4af164ea3a06f701fe3e89a2bcbb421d2026b68f
 # environment
 LOGNAME = kervin
 # environment
@@ -125,7 +125,7 @@ TMPDIR = /var/folders/48/vg8936dx17j9pqslg2hm5h_c0000gn/T/
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /Users/kervin/Library/Application Support/Code/1.67.2-main.sock
+VSCODE_IPC_HOOK = /Users/kervin/Library/Application Support/Code/1.68.0-main.sock
 # makefile
 MAKEFLAGS = Rrqp
 # environment
@@ -133,7 +133,7 @@ MFLAGS = -Rrqp
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.8184449.8184455
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.9477782.9477788
 # environment
 HOMEBREW_PREFIX = /opt/homebrew
 # automatic
@@ -171,11 +171,10 @@ MAKELEVEL := 0
 # environment
 LANG = C
 # environment
-VSCODE_PID = 6564
+VSCODE_PID = 86867
 # makefile (from `.envrc', line 10)
 XENDIT_CALLBACK_VERIFICATION_TOKEN = b8f54fc11fafd8b69cb9bb4f37c2be27307a7e30a91e8a477a3986fadd672967
 # variable set hash-table stats:
- 
 # Load=80/1024=8%, Rehash=0, Collisions=4/106=4%
 
 # Pattern-specific Variable Values
@@ -301,6 +300,7 @@ db/psql:
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
+ 
 #  commands to execute (from `Makefile', line 29):
 	psql ${DB_DSN}
 	
@@ -340,7 +340,6 @@ run/api:
 #  File does not exist.
 #  File has not been updated.
 #  commands to execute (from `Makefile', line 24):
- 
 	go run ./cmd/api -db-dsn=${DB_DSN}
 	
 
@@ -354,6 +353,7 @@ vendor:
 	go mod tidy
 	go mod verify
 	@echo 'Vendoring dependencies...'
+ 
 	go mod vendor
 	
 
@@ -370,6 +370,6 @@ vendor:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4080 / max = 4080 / min = 4080 / avg = 4080
 
-# Finished Make data base on Tue Jun 14 19:35:41 2022
+# Finished Make data base on Thu Jun 16 10:17:02 2022
 
  

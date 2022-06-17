@@ -15,6 +15,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	"github.com/allegro/bigcache/v3"
 	"github.com/kervinch/internal/data"
 	"github.com/kervinch/internal/jsonlog"
 	"github.com/kervinch/internal/mailer"
@@ -69,6 +70,7 @@ type application struct {
 	wg     sync.WaitGroup
 	s3     s3.S3
 	xendit xendit.Xendit
+	cache  bigcache.BigCache
 }
 
 func main() {
@@ -131,6 +133,8 @@ func main() {
 		return time.Now().Unix()
 	}))
 
+	bigcache, _ := bigcache.NewBigCache(bigcache.DefaultConfig(5 * time.Hour))
+
 	// Declare an instance of the application struct, containing the config struct and the logger.
 	app := &application{
 		config: cfg,
@@ -140,6 +144,7 @@ func main() {
 		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 		s3:     s3.New("kin-public"),
 		xendit: xendit.New(os.Getenv("XENDIT_SECRET_KEY")),
+		cache:  *bigcache,
 	}
 
 	err = app.serve()

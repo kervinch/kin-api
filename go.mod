@@ -3,6 +3,7 @@ module github.com/kervinch
 go 1.18
 
 require (
+	github.com/allegro/bigcache/v3 v3.0.2
 	github.com/aws/aws-sdk-go v1.43.24
 	github.com/felixge/httpsnoop v1.0.2
 	github.com/go-mail/mail/v2 v2.3.0
