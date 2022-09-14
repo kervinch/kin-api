@@ -248,7 +248,6 @@ func (app *application) gormListBannerHandler(w http.ResponseWriter, r *http.Req
 	pagination.PageSize = app.readInt(qs, "page_size", 20, v)
 
 	banners, metadata, err := app.gorm.Banners.GetAll(pagination)
-
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

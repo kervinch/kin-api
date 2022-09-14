@@ -10,7 +10,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 make: *** No rule to make target `all'.  Stop.
 
 
-# Make data base, printed on Thu Jun 16 10:17:02 2022
+# Make data base, printed on Thu Sep 15 01:27:57 2022
 
 # Variables
 
@@ -20,8 +20,6 @@ make: *** No rule to make target `all'.  Stop.
 ?F = $(notdir $?)
 # makefile (from `.envrc', line 7)
 AWS_SECRET_ACCESS_KEY = CYhNZQDDF0jC3clbnv9QXiaXTZZtjPEfpx0zkRDJ
-# environment
-VSCODE_LOG_NATIVE = false
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # automatic
@@ -41,19 +39,15 @@ MAKEFILE_LIST :=  Makefile .envrc
 # environment
 VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
-VSCODE_VERBOSE_LOGGING = true
-# environment
 __CFBundleIdentifier = com.microsoft.VSCode
 # environment
 INFOPATH = /opt/homebrew/share/info:
-# environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/48/vg8936dx17j9pqslg2hm5h_c0000gn/T/vscode-ipc-93367032-61ed-46e7-a747-686d1f42b047.sock
 # environment
 VSCODE_CWD = /
 # environment
 GOPROXY = https://proxy.golang.org,direct
 # environment
-PATH = /opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin
+PATH = /Library/Frameworks/Python.framework/Versions/3.10/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin
 # makefile (from `Makefile', line 77)
 current_time = $(shell date --iso-8601=seconds)
 # environment
@@ -61,19 +55,15 @@ GOPATH = /Users/kervin/go
 # makefile (from `Makefile', line 79)
 linker_flags = '-s -X main.buildTime=${current_time} -X main.version=${git_description}'
 # environment
-VSCODE_LOG_STACK = false
-# environment
 ELECTRON_RUN_AS_NODE = 1
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
-# makefile (from `.envrc', line 3)
-DB_DSN = "postgres://root:vrwYlxDa0mxM@kin-production.cc5yxrwtsz6l.ap-southeast-1.rds.amazonaws.com:5432/kin"
+# makefile (from `.envrc', line 1)
+DB_DSN = postgres://postgres@localhost:5432/golang?sslmode=disable
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.UmT6h0t6YT/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.GziHtp5mXJ/Listeners
 # automatic
 %F = $(notdir $%)
-# environment
-VSCODE_PIPE_LOGGING = true
 # environment
 PWD = /Users/kervin/Documents/kin-api
 # environment
@@ -89,7 +79,7 @@ HOME = /Users/kervin
 # default
 MAKEFILEPATH = $(shell /usr/bin/xcode-select -print-path 2>/dev/null || echo /Developer)/Makefiles
 # environment
-VSCODE_CODE_CACHE_PATH = /Users/kervin/Library/Application Support/Code/CachedData/4af164ea3a06f701fe3e89a2bcbb421d2026b68f
+VSCODE_CODE_CACHE_PATH = /Users/kervin/Library/Application Support/Code/CachedData/e7f30e38c5a4efafeec8ad52861eb772a9ee4dfb
 # environment
 LOGNAME = kervin
 # environment
@@ -114,6 +104,7 @@ USER = kervin
 .DEFAULT_GOAL := help
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
+ 
 # makefile (from `.envrc', line 6)
 AWS_ACCESS_KEY_ID = AKIAVQAV2PVA3CNQPVLQ
 # default
@@ -125,7 +116,9 @@ TMPDIR = /var/folders/48/vg8936dx17j9pqslg2hm5h_c0000gn/T/
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /Users/kervin/Library/Application Support/Code/1.68.0-main.sock
+VSCODE_IPC_HOOK = /Users/kervin/Library/Application Support/Code/1.71.1-main.sock
+# environment
+MallocNanoZone = 0
 # makefile
 MAKEFLAGS = Rrqp
 # environment
@@ -133,7 +126,7 @@ MFLAGS = -Rrqp
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.9477782.9477788
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.13819081.13819087
 # environment
 HOMEBREW_PREFIX = /opt/homebrew
 # automatic
@@ -171,11 +164,11 @@ MAKELEVEL := 0
 # environment
 LANG = C
 # environment
-VSCODE_PID = 86867
+VSCODE_PID = 10262
 # makefile (from `.envrc', line 10)
 XENDIT_CALLBACK_VERIFICATION_TOKEN = b8f54fc11fafd8b69cb9bb4f37c2be27307a7e30a91e8a477a3986fadd672967
 # variable set hash-table stats:
-# Load=80/1024=8%, Rehash=0, Collisions=4/106=4%
+# Load=76/1024=7%, Rehash=0, Collisions=4/102=4%
 
 # Pattern-specific Variable Values
 
@@ -183,7 +176,7 @@ XENDIT_CALLBACK_VERIFICATION_TOKEN = b8f54fc11fafd8b69cb9bb4f37c2be27307a7e30a91
 
 # Directories
 
-# . (device 16777234, inode 2988838): 18 files, no impossibilities.
+# . (device 16777231, inode 2988838): 18 files, no impossibilities.
 
 # 18 files, no impossibilities in 1 directories.
 
@@ -300,7 +293,6 @@ db/psql:
 #  Implicit rule search has not been done.
 #  File does not exist.
 #  File has not been updated.
- 
 #  commands to execute (from `Makefile', line 29):
 	psql ${DB_DSN}
 	
@@ -318,7 +310,7 @@ db/migrations/up: confirm
 # Not a target:
 .envrc:
 #  Implicit rule search has been done.
-#  Last modified 2022-06-09 10:28:40
+#  Last modified 2022-09-15 00:32:26
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
@@ -353,7 +345,6 @@ vendor:
 	go mod tidy
 	go mod verify
 	@echo 'Vendoring dependencies...'
- 
 	go mod vendor
 	
 
@@ -370,6 +361,6 @@ vendor:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4080 / max = 4080 / min = 4080 / avg = 4080
 
-# Finished Make data base on Thu Jun 16 10:17:02 2022
+# Finished Make data base on Thu Sep 15 01:27:57 2022
 
  
