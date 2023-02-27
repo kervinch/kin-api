@@ -1,1 +1,1 @@
-# kin-api
+adain-api
